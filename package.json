@@ -1,0 +1,20 @@
+{
+  "name": "xeno-mini-crm",
+  "version": "1.0.0",
+  "description": "AI-Native Mini CRM for D2C brands — monorepo with Next.js CRM + Express Channel Service",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n CRM,CHANNEL -c blue,green \"npm run dev:crm\" \"npm run dev:channel\"",
+    "dev:crm": "cd crm && npm run dev",
+    "dev:channel": "cd channel-service && npm run dev",
+    "build": "cd crm && npm run build",
+    "db:migrate": "cd crm && npx prisma migrate dev",
+    "db:push": "cd crm && npx prisma db push",
+    "db:seed": "cd crm && npx prisma db seed",
+    "db:studio": "cd crm && npx prisma studio",
+    "install:all": "cd crm && npm install && cd ../channel-service && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
