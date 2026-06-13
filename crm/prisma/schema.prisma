@@ -1,0 +1,122 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// Enums
+// ============================================
+
+enum Channel {
+  WHATSAPP
+  SMS
+  EMAIL
+  RCS
+}
+
+enum CampaignStatus {
+  DRAFT
+  QUEUED
+  SENDING
+  COMPLETED
+  FAILED
+}
+
+enum CommunicationStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+  OPENED
+  CLICKED
+}
+
+// ============================================
+// Models
+// ============================================
+
+model Customer {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  phone         String
+  city          String
+  totalSpend    Decimal   @default(0) @db.Decimal(12, 2)
+  lastOrderDate DateTime?
+  tags          String[]
+  createdAt     DateTime  @default(now())
+
+  orders            Order[]
+  communicationLogs CommunicationLog[]
+
+  @@index([city])
+  @@index([totalSpend])
+  @@index([lastOrderDate])
+}
+
+model Order {
+  id         String   @id @default(cuid())
+  customerId String
+  amount     Decimal  @db.Decimal(12, 2)
+  items      Json     // Array of { name, category, qty, price }
+  orderDate  DateTime
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([orderDate])
+}
+
+model Segment {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  ruleDefinition Json     // Structured conditions JSON
+  createdAt      DateTime @default(now())
+
+  campaigns Campaign[]
+}
+
+model Campaign {
+  id                  String         @id @default(cuid())
+  name                String
+  segmentId           String?
+  segmentRuleSnapshot Json           // Snapshot of segment rule at campaign creation time
+  messageTemplate     String         @db.Text
+  channel             Channel
+  status              CampaignStatus @default(DRAFT)
+  createdAt           DateTime       @default(now())
+
+  segment           Segment?           @relation(fields: [segmentId], references: [id], onDelete: SetNull)
+  communicationLogs CommunicationLog[]
+
+  @@index([status])
+  @@index([segmentId])
+}
+
+model CommunicationLog {
+  id              String              @id @default(cuid())
+  campaignId      String
+  customerId      String
+  renderedMessage String              @db.Text
+  status          CommunicationStatus @default(QUEUED)
+  sentAt          DateTime?
+  deliveredAt     DateTime?
+  openedAt        DateTime?
+  clickedAt       DateTime?
+  failureReason   String?
+  createdAt       DateTime            @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+  @@index([customerId])
+  @@index([status])
+}
