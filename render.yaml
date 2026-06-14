@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: xeno-channel-service
+    env: node
+    rootDir: channel-service
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: DATABASE_URL
+        sync: false # Set this in the Render dashboard manually
