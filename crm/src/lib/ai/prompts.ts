@@ -109,31 +109,36 @@ Given a segment rule JSON definition, convert it into a clear, natural-sounding 
 6. Keep it to 1-2 sentences
 7. Return ONLY the description text`;
 
+import { SchemaType, Schema } from "@google/generative-ai";
+
 // ============================================
 // Gemini responseSchema definitions (OpenAPI 3.0 subset)
 // ============================================
 
-export const PARSE_INTENT_SCHEMA = {
-  type: "object" as const,
+export const PARSE_INTENT_SCHEMA: Schema = {
+  type: SchemaType.OBJECT,
   properties: {
     segment: {
-      type: "object" as const,
+      type: SchemaType.OBJECT,
       properties: {
         combinator: {
-          type: "string" as const,
+          type: SchemaType.STRING,
+          format: "enum",
           enum: ["AND", "OR"],
         },
         conditions: {
-          type: "array" as const,
+          type: SchemaType.ARRAY,
           items: {
-            type: "object" as const,
+            type: SchemaType.OBJECT,
             properties: {
               field: {
-                type: "string" as const,
+                type: SchemaType.STRING,
+                format: "enum",
                 enum: ["city", "totalSpend", "lastOrderDate", "tags", "orderCount"],
               },
               operator: {
-                type: "string" as const,
+                type: SchemaType.STRING,
+                format: "enum",
                 enum: [
                   "equals",
                   "notEquals",
@@ -145,7 +150,7 @@ export const PARSE_INTENT_SCHEMA = {
                 ],
               },
               value: {
-                type: "string" as const,
+                type: SchemaType.STRING,
                 description: "The value for the condition. Numbers should be passed as strings.",
               },
             },
@@ -156,14 +161,15 @@ export const PARSE_INTENT_SCHEMA = {
       required: ["combinator", "conditions"],
     },
     messageIntent: {
-      type: "object" as const,
+      type: SchemaType.OBJECT,
       properties: {
         channel: {
-          type: "string" as const,
+          type: SchemaType.STRING,
+          format: "enum",
           enum: ["WHATSAPP", "SMS", "EMAIL", "RCS"],
         },
-        tone: { type: "string" as const },
-        offerDescription: { type: "string" as const },
+        tone: { type: SchemaType.STRING },
+        offerDescription: { type: SchemaType.STRING },
       },
       required: ["channel", "tone", "offerDescription"],
     },
@@ -171,4 +177,4 @@ export const PARSE_INTENT_SCHEMA = {
   required: ["segment", "messageIntent"],
 };
 
-export const REFINE_INTENT_SCHEMA = PARSE_INTENT_SCHEMA;
+export const REFINE_INTENT_SCHEMA: Schema = PARSE_INTENT_SCHEMA;
