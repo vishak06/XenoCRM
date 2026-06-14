@@ -23,7 +23,7 @@ interface Customer {
   city: string;
   totalSpend: string;
   lastOrderDate: string | null;
-  tags: string[];
+  segments: string[];
   orderCount: number;
 }
 
@@ -155,7 +155,7 @@ export default function SegmentDetailsPage({ params }: { params: Promise<{ id: s
               <TableHead>Total Spend</TableHead>
               <TableHead>Last Order</TableHead>
               <TableHead>Orders</TableHead>
-              <TableHead>Tags</TableHead>
+              <TableHead>Segments</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -186,18 +186,18 @@ export default function SegmentDetailsPage({ params }: { params: Promise<{ id: s
                   <TableCell className="text-center">{customer.orderCount}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
-                      {customer.tags.slice(0, 3).map((tag) => (
+                      {customer.segments.slice(0, 3).map((segment) => (
                         <Badge
-                          key={tag}
+                          key={segment}
                           variant="outline"
-                          className={`text-[10px] px-1.5 py-0 ${tagColors[tag] || "bg-muted text-muted-foreground"}`}
+                          className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-primary/20"
                         >
-                          {tag}
+                          {segment}
                         </Badge>
                       ))}
-                      {customer.tags.length > 3 && (
+                      {customer.segments.length > 3 && (
                         <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-muted text-muted-foreground">
-                          +{customer.tags.length - 3}
+                          +{customer.segments.length - 3}
                         </Badge>
                       )}
                     </div>

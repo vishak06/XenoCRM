@@ -29,6 +29,35 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
     // Apply orderCount post-filter if needed
     const filtered = filterByOrderCount(allMatching, orderCountConditions, rule.combinator);
 
+    // Get ALL segments so we can see which ones these customers belong to
+    const allSegments = await prisma.segment.findMany();
+
+    const customerIds = filtered.map(c => c.id);
+    const customerSegments: Record<string, string[]> = {};
+    for (const id of customerIds) {
+      customerSegments[id] = [];
+    }
+
+    await Promise.all(allSegments.map(async (seg) => {
+      const segRule = seg.ruleDefinition as any;
+      const { where: segWhere, orderCountConditions: segOrderCount } = ruleToPrismaWhere(segRule);
+      
+      const matchingCustomers = await prisma.customer.findMany({
+        where: {
+          ...segWhere,
+          id: { in: customerIds }
+        },
+        include: {
+          _count: { select: { orders: true } }
+        }
+      });
+
+      const segFiltered = filterByOrderCount(matchingCustomers, segOrderCount, segRule.combinator);
+      for (const c of segFiltered) {
+        customerSegments[c.id].push(seg.name);
+      }
+    }));
+
     const customers = filtered.map((c) => ({
       id: c.id,
       name: c.name,
@@ -37,7 +66,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       totalSpend: c.totalSpend,
       lastOrderDate: c.lastOrderDate,
       orderCount: c._count.orders,
-      tags: c.tags,
+      segments: customerSegments[c.id] || [],
     }));
 
     return NextResponse.json({

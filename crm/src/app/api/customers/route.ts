@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { ruleToPrismaWhere, filterByOrderCount } from "@/lib/segments/rule-to-prisma";
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
       orderBy["createdAt"] = "desc";
     }
 
-    const [customers, total] = await Promise.all([
+    const [customers, total, allSegments] = await Promise.all([
       prisma.customer.findMany({
         where,
         orderBy,
@@ -39,10 +40,42 @@ export async function GET(request: NextRequest) {
         },
       }),
       prisma.customer.count({ where }),
+      prisma.segment.findMany(),
     ]);
 
+    const customerIds = customers.map(c => c.id);
+    const customerSegments: Record<string, string[]> = {};
+    for (const id of customerIds) {
+      customerSegments[id] = [];
+    }
+
+    await Promise.all(allSegments.map(async (segment) => {
+      const rule = segment.ruleDefinition as any;
+      const { where: segmentWhere, orderCountConditions } = ruleToPrismaWhere(rule);
+      
+      const matchingCustomers = await prisma.customer.findMany({
+        where: {
+          ...segmentWhere,
+          id: { in: customerIds }
+        },
+        include: {
+          _count: { select: { orders: true } }
+        }
+      });
+
+      const filtered = filterByOrderCount(matchingCustomers, orderCountConditions, rule.combinator);
+      for (const c of filtered) {
+        customerSegments[c.id].push(segment.name);
+      }
+    }));
+
+    const customersWithSegments = customers.map(c => ({
+      ...c,
+      segments: customerSegments[c.id] || []
+    }));
+
     return NextResponse.json({
-      customers,
+      customers: customersWithSegments,
       pagination: {
         page,
         limit,
