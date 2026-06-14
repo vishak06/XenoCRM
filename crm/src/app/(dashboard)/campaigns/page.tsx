@@ -36,18 +36,18 @@ interface Campaign {
 }
 
 const statusColors: Record<string, string> = {
-  DRAFT: "bg-gray-500/15 text-gray-400 border-gray-500/30",
-  QUEUED: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30",
-  SENDING: "bg-blue-500/15 text-blue-400 border-blue-500/30",
-  COMPLETED: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
-  FAILED: "bg-red-500/15 text-red-400 border-red-500/30",
+  DRAFT: "bg-gray-500/10 text-gray-600 border-gray-500/20 dark:bg-gray-500/15 dark:text-gray-400 dark:border-gray-500/30",
+  QUEUED: "bg-yellow-500/10 text-yellow-700 border-yellow-500/20 dark:bg-yellow-500/15 dark:text-yellow-400 dark:border-yellow-500/30",
+  SENDING: "bg-blue-500/10 text-blue-700 border-blue-500/20 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/30",
+  COMPLETED: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30",
+  FAILED: "bg-red-500/10 text-red-700 border-red-500/20 dark:bg-red-500/15 dark:text-red-400 dark:border-red-500/30",
 };
 
 const channelColors: Record<string, string> = {
-  WHATSAPP: "bg-green-500/15 text-green-400 border-green-500/30",
-  SMS: "bg-blue-500/15 text-blue-400 border-blue-500/30",
-  EMAIL: "bg-purple-500/15 text-purple-400 border-purple-500/30",
-  RCS: "bg-orange-500/15 text-orange-400 border-orange-500/30",
+  WHATSAPP: "bg-green-500/10 text-green-700 border-green-500/20 dark:bg-green-500/15 dark:text-green-400 dark:border-green-500/30",
+  SMS: "bg-blue-500/10 text-blue-700 border-blue-500/20 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/30",
+  EMAIL: "bg-purple-500/10 text-purple-700 border-purple-500/20 dark:bg-purple-500/15 dark:text-purple-400 dark:border-purple-500/30",
+  RCS: "bg-orange-500/10 text-orange-700 border-orange-500/20 dark:bg-orange-500/15 dark:text-orange-400 dark:border-orange-500/30",
 };
 
 export default function CampaignsPage() {
@@ -88,23 +88,23 @@ export default function CampaignsPage() {
       </div>
 
       {campaigns.length === 0 && !loading ? (
-        <div className="flex flex-col items-center justify-center py-16 border border-border/50 border-dashed rounded-xl">
-          <Megaphone className="w-12 h-12 text-muted-foreground/40 mb-4" />
+        <div className="flex flex-col items-center justify-center py-16 border border-border border-dashed rounded-xl bg-card">
+          <Megaphone className="w-12 h-12 text-muted-foreground/30 mb-4" />
           <p className="text-muted-foreground text-center mb-4">
             No campaigns yet. Create your first AI-powered campaign.
           </p>
           <Link href="/campaigns/new">
-            <Button variant="outline" className="gap-2 border-primary/30 text-primary hover:bg-primary/10">
+            <Button variant="outline" className="gap-2 border-primary/30 text-primary hover:bg-primary/5 dark:hover:bg-primary/10">
               <Plus className="w-4 h-4" />
               Create Campaign
             </Button>
           </Link>
         </div>
       ) : (
-        <div className="rounded-xl border border-border/50 overflow-hidden bg-card/50">
+        <div className="rounded-xl border border-border overflow-hidden bg-card">
           <Table>
             <TableHeader>
-              <TableRow className="hover:bg-transparent border-border/50">
+              <TableRow className="hover:bg-transparent border-border">
                 <TableHead>Campaign</TableHead>
                 <TableHead>Channel</TableHead>
                 <TableHead>Status</TableHead>
@@ -120,14 +120,14 @@ export default function CampaignsPage() {
             <TableBody>
               {loading
                 ? Array.from({ length: 4 }).map((_, i) => (
-                    <TableRow key={i} className="border-border/30">
+                    <TableRow key={i} className="border-border/50">
                       {Array.from({ length: 10 }).map((_, j) => (
                         <TableCell key={j}><Skeleton className="h-4 w-16" /></TableCell>
                       ))}
                     </TableRow>
                   ))
                 : campaigns.map((campaign) => (
-                    <TableRow key={campaign.id} className="border-border/30 hover:bg-muted/30 transition-colors">
+                    <TableRow key={campaign.id} className="border-border/50 hover:bg-muted/40 transition-colors">
                       <TableCell>
                         <div>
                           <span className="font-medium">{campaign.name}</span>
@@ -150,11 +150,11 @@ export default function CampaignsPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">{campaign.stats.total}</TableCell>
-                      <TableCell className="text-center text-blue-400">{campaign.stats.sent}</TableCell>
-                      <TableCell className="text-center text-emerald-400">{campaign.stats.delivered}</TableCell>
-                      <TableCell className="text-center text-amber-400">{campaign.stats.opened}</TableCell>
-                      <TableCell className="text-center text-purple-400">{campaign.stats.clicked}</TableCell>
-                      <TableCell className="text-center text-red-400">{campaign.stats.failed}</TableCell>
+                      <TableCell className="text-center text-blue-600 dark:text-blue-400">{campaign.stats.sent}</TableCell>
+                      <TableCell className="text-center text-emerald-600 dark:text-emerald-400">{campaign.stats.delivered}</TableCell>
+                      <TableCell className="text-center text-amber-600 dark:text-amber-400">{campaign.stats.opened}</TableCell>
+                      <TableCell className="text-center text-purple-600 dark:text-purple-400">{campaign.stats.clicked}</TableCell>
+                      <TableCell className="text-center text-red-600 dark:text-red-400">{campaign.stats.failed}</TableCell>
                       <TableCell>
                         <Link href={`/campaigns/${campaign.id}`}>
                           <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">

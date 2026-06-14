@@ -75,14 +75,14 @@ export default function OrdersPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Orders</h1>
         <p className="text-muted-foreground mt-1">
-          {pagination ? `${pagination.total} total orders` : "Loading..."}
+          {pagination ? `${pagination.total.toLocaleString("en-IN")} total orders` : "Loading..."}
         </p>
       </div>
 
-      <div className="rounded-xl border border-border/50 overflow-hidden bg-card/50">
+      <div className="rounded-xl border border-border overflow-hidden bg-card">
         <Table>
           <TableHeader>
-            <TableRow className="hover:bg-transparent border-border/50">
+            <TableRow className="hover:bg-transparent border-border">
               <TableHead>Order ID</TableHead>
               <TableHead>Customer</TableHead>
               <TableHead>
@@ -101,7 +101,7 @@ export default function OrdersPage() {
           <TableBody>
             {loading
               ? Array.from({ length: 8 }).map((_, i) => (
-                  <TableRow key={i} className="border-border/30">
+                  <TableRow key={i} className="border-border/50">
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
@@ -112,7 +112,7 @@ export default function OrdersPage() {
               : orders.map((order) => {
                   const items = Array.isArray(order.items) ? order.items : [];
                   return (
-                    <TableRow key={order.id} className="border-border/30 hover:bg-muted/30 transition-colors">
+                    <TableRow key={order.id} className="border-border/50 hover:bg-muted/40 transition-colors">
                       <TableCell className="font-mono text-xs text-muted-foreground">
                         {order.id.substring(0, 12)}...
                       </TableCell>
@@ -155,7 +155,6 @@ export default function OrdersPage() {
               size="sm"
               onClick={() => setPage(Math.max(1, page - 1))}
               disabled={page === 1}
-              className="border-border/50"
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
@@ -164,7 +163,6 @@ export default function OrdersPage() {
               size="sm"
               onClick={() => setPage(Math.min(pagination.totalPages, page + 1))}
               disabled={page === pagination.totalPages}
-              className="border-border/50"
             >
               <ChevronRight className="w-4 h-4" />
             </Button>

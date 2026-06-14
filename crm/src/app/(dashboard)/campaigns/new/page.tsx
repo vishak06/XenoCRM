@@ -18,6 +18,12 @@ import {
   RefreshCw,
   Layers,
   Zap,
+  Brain,
+  AlertCircle,
+  ArrowRight,
+  CheckCircle2,
+  Lightbulb,
+  PenLine,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -81,7 +87,7 @@ export default function NewCampaignPage() {
       id: "welcome",
       role: "assistant",
       content:
-        "👋 Welcome to the AI Campaign Builder! Describe your campaign in natural language, and I'll help you create it.\n\nFor example:\n• *\"Customers in Bangalore who spent over ₹10,000 and haven't ordered in 60 days — send a 15% off coupon via WhatsApp\"*\n• *\"Email VIP customers about our new summer collection with an exclusive early access offer\"*\n• *\"SMS customers in Mumbai tagged as churn-risk with a win-back discount\"*",
+        "Welcome to the AI Campaign Builder. Describe your campaign in natural language, and I'll help you create it.\n\nFor example:\n\u2022 \"Customers in Bangalore who spent over \u20B910,000 and haven't ordered in 60 days \u2014 send a 15% off coupon via WhatsApp\"\n\u2022 \"Email VIP customers about our new summer collection with an exclusive early access offer\"\n\u2022 \"SMS customers in Mumbai tagged as churn-risk with a win-back discount\"",
     },
   ]);
   const [inputValue, setInputValue] = useState("");
@@ -129,10 +135,8 @@ export default function NewCampaignPage() {
     setInputValue("");
 
     if (step === "IDLE" || step === "PARSING") {
-      // Initial intent parsing
       await handleParseIntent(message);
     } else if (step === "SEGMENT_PREVIEW") {
-      // Refinement
       await handleRefineSegment(message);
     }
   };
@@ -141,7 +145,7 @@ export default function NewCampaignPage() {
     setStep("PARSING");
     addMessage({
       role: "assistant",
-      content: "🧠 Analyzing your campaign intent...",
+      content: "Analyzing your campaign intent...",
       type: "text",
     });
 
@@ -161,13 +165,12 @@ export default function NewCampaignPage() {
       setCurrentSegment(data.segment);
       setCurrentMessageIntent(data.messageIntent);
 
-      // Get preview
       await fetchPreview(data.segment, data.messageIntent);
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : "Something went wrong";
       addMessage({
         role: "assistant",
-        content: `❌ ${errMsg}\n\nPlease try rephrasing your campaign description.`,
+        content: `${errMsg}\n\nPlease try rephrasing your campaign description.`,
       });
       setStep("IDLE");
     }
@@ -186,11 +189,10 @@ export default function NewCampaignPage() {
       const preview: SegmentPreview = await previewRes.json();
       setCurrentPreview(preview);
 
-      // Remove the "analyzing" message and add the preview
       setMessages((prev) => {
         const filtered = prev.filter(
-          (m) => m.content !== "🧠 Analyzing your campaign intent..." &&
-                 m.content !== "🔄 Refining your segment..."
+          (m) => m.content !== "Analyzing your campaign intent..." &&
+                 m.content !== "Refining your segment..."
         );
         return [
           ...filtered,
@@ -212,7 +214,7 @@ export default function NewCampaignPage() {
     } catch {
       addMessage({
         role: "assistant",
-        content: "❌ Failed to preview segment. Please try again.",
+        content: "Failed to preview segment. Please try again.",
       });
       setStep("IDLE");
     }
@@ -223,7 +225,7 @@ export default function NewCampaignPage() {
     setStep("REFINING");
     addMessage({
       role: "assistant",
-      content: "🔄 Refining your segment...",
+      content: "Refining your segment...",
     });
 
     try {
@@ -248,7 +250,7 @@ export default function NewCampaignPage() {
     } catch {
       addMessage({
         role: "assistant",
-        content: "❌ Failed to refine segment. Please try again.",
+        content: "Failed to refine segment. Please try again.",
       });
       setStep("SEGMENT_PREVIEW");
     }
@@ -259,7 +261,7 @@ export default function NewCampaignPage() {
     setStep("DRAFTING_MESSAGE");
     addMessage({
       role: "assistant",
-      content: "✅ Segment confirmed! Drafting your message...",
+      content: "Segment confirmed. Drafting your message...",
     });
 
     try {
@@ -277,10 +279,9 @@ export default function NewCampaignPage() {
       const data = await res.json();
       setCurrentTemplate(data.messageTemplate);
 
-      // Remove drafting message and add draft
       setMessages((prev) => {
         const filtered = prev.filter(
-          (m) => m.content !== "✅ Segment confirmed! Drafting your message..."
+          (m) => m.content !== "Segment confirmed. Drafting your message..."
         );
         return [
           ...filtered,
@@ -302,7 +303,7 @@ export default function NewCampaignPage() {
     } catch {
       addMessage({
         role: "assistant",
-        content: "❌ Failed to draft message. Please try again.",
+        content: "Failed to draft message. Please try again.",
       });
       setStep("SEGMENT_PREVIEW");
     }
@@ -319,7 +320,7 @@ export default function NewCampaignPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: `Campaign — ${currentMessageIntent.offerDescription}`,
+          name: `Campaign \u2014 ${currentMessageIntent.offerDescription}`,
           segmentRule: currentSegment,
           messageTemplate: template,
           channel: currentMessageIntent.channel,
@@ -347,7 +348,7 @@ export default function NewCampaignPage() {
     } catch {
       addMessage({
         role: "assistant",
-        content: "❌ Failed to create campaign. Please try again.",
+        content: "Failed to create campaign. Please try again.",
       });
       setStep("MESSAGE_DRAFT");
     }
@@ -364,13 +365,12 @@ export default function NewCampaignPage() {
       const data = await res.json();
 
       if (data.success) {
-        toast.success(`🚀 Campaign dispatched: ${data.sent} messages sent!`);
+        toast.success(`Campaign dispatched: ${data.sent} messages sent`);
         addMessage({
           role: "assistant",
-          content: `🚀 Campaign dispatched successfully!\n\n• **${data.sent}** messages sent\n• **${data.failed}** failed\n\nYou can track the delivery progress on the campaign detail page.`,
+          content: `Campaign dispatched successfully.\n\n\u2022 ${data.sent} messages sent\n\u2022 ${data.failed} failed\n\nYou can track the delivery progress on the campaign detail page.`,
         });
 
-        // Redirect after a short delay
         setTimeout(() => router.push(`/campaigns/${campaignId}`), 2000);
       }
     } catch {
@@ -431,15 +431,15 @@ export default function NewCampaignPage() {
 
     return (
       <div className="flex justify-start animate-slide-up">
-        <Card className="max-w-[90%] border-primary/20 bg-card/80 backdrop-blur-sm">
+        <Card className="max-w-[90%] border-primary/15 dark:border-primary/20 bg-card">
           <CardContent className="p-4 space-y-4">
             {/* Header */}
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-md bg-primary/15">
+              <div className="p-1.5 rounded-md bg-primary/8 dark:bg-primary/15">
                 <Layers className="w-4 h-4 text-primary" />
               </div>
               <span className="font-semibold text-sm">Segment Preview</span>
-              <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30 ml-auto">
+              <Badge variant="outline" className="bg-blue-500/10 text-blue-700 border-blue-500/20 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/30 ml-auto">
                 <Users className="w-3 h-3 mr-1" />
                 {preview.totalCount} matches
               </Badge>
@@ -452,7 +452,7 @@ export default function NewCampaignPage() {
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {segment.conditions.map((c, i) => (
-                  <Badge key={i} variant="outline" className="text-xs bg-muted/50">
+                  <Badge key={i} variant="outline" className="text-xs bg-muted/50 dark:bg-muted/30">
                     {c.field} {c.operator} {c.value}
                   </Badge>
                 ))}
@@ -461,13 +461,13 @@ export default function NewCampaignPage() {
 
             {/* Channel + Tone */}
             <div className="flex gap-2">
-              <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30">
+              <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-500/20 dark:bg-green-500/15 dark:text-green-400 dark:border-green-500/30">
                 {messageIntent.channel}
               </Badge>
-              <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/30">
+              <Badge variant="outline" className="bg-purple-500/10 text-purple-700 border-purple-500/20 dark:bg-purple-500/15 dark:text-purple-400 dark:border-purple-500/30">
                 {messageIntent.tone}
               </Badge>
-              <Badge variant="outline" className="bg-amber-500/10 text-amber-400 border-amber-500/30 text-xs">
+              <Badge variant="outline" className="bg-amber-500/10 text-amber-700 border-amber-500/20 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/30 text-xs">
                 {messageIntent.offerDescription}
               </Badge>
             </div>
@@ -482,7 +482,7 @@ export default function NewCampaignPage() {
                   {preview.sample.map((c) => (
                     <div
                       key={c.id}
-                      className="flex items-center justify-between px-3 py-2 rounded-lg bg-muted/30 text-xs"
+                      className="flex items-center justify-between px-3 py-2 rounded-lg bg-muted/40 dark:bg-muted/30 text-xs"
                     >
                       <span className="font-medium">{c.name}</span>
                       <span className="text-muted-foreground">{c.city}</span>
@@ -504,7 +504,7 @@ export default function NewCampaignPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-muted-foreground border-border/50"
+                  className="text-muted-foreground"
                   onClick={() => inputRef.current?.focus()}
                 >
                   <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refine
@@ -524,7 +524,6 @@ export default function NewCampaignPage() {
       channel: string;
     };
 
-    // Render preview with sample customer data
     let renderedPreview = currentTemplate;
     if (sampleCustomer) {
       renderedPreview = renderedPreview
@@ -537,14 +536,14 @@ export default function NewCampaignPage() {
 
     return (
       <div className="flex justify-start animate-slide-up">
-        <Card className="max-w-[90%] border-emerald-500/20 bg-card/80 backdrop-blur-sm">
+        <Card className="max-w-[90%] border-emerald-500/15 dark:border-emerald-500/20 bg-card">
           <CardContent className="p-4 space-y-4">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-md bg-emerald-500/15">
-                <MessageSquare className="w-4 h-4 text-emerald-400" />
+              <div className="p-1.5 rounded-md bg-emerald-500/8 dark:bg-emerald-500/15">
+                <MessageSquare className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               </div>
               <span className="font-semibold text-sm">Message Draft</span>
-              <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30 ml-auto">
+              <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-500/20 dark:bg-green-500/15 dark:text-green-400 dark:border-green-500/30 ml-auto">
                 {channel}
               </Badge>
             </div>
@@ -569,25 +568,25 @@ export default function NewCampaignPage() {
                 <Textarea
                   value={currentTemplate}
                   onChange={(e) => setCurrentTemplate(e.target.value)}
-                  className="min-h-[120px] text-sm bg-muted/30 border-border/30"
+                  className="min-h-[120px] text-sm"
                 />
               ) : (
-                <div className="p-3 rounded-lg bg-muted/30 border border-border/30">
+                <div className="p-3 rounded-lg bg-muted/40 dark:bg-muted/30 border border-border/50">
                   <p className="text-sm whitespace-pre-wrap">{renderedPreview}</p>
                 </div>
               )}
             </div>
 
             {sampleCustomer && !editingTemplate && (
-              <p className="text-[10px] text-muted-foreground">
-                ↑ Preview rendered with data from: <strong>{sampleCustomer.name}</strong>
+              <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                <ArrowRight className="w-3 h-3" /> Preview rendered with data from: <strong>{sampleCustomer.name}</strong>
               </p>
             )}
 
             {/* Actions */}
             {step === "MESSAGE_DRAFT" && (
               <div className="flex gap-2 pt-2">
-                <Button size="sm" onClick={handleApproveAndCreate} className="gap-1.5 bg-emerald-600 hover:bg-emerald-700">
+                <Button size="sm" onClick={handleApproveAndCreate} className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
                   <Rocket className="w-3.5 h-3.5" /> Approve & Create Campaign
                 </Button>
               </div>
@@ -608,27 +607,28 @@ export default function NewCampaignPage() {
 
     return (
       <div className="flex justify-start animate-slide-up">
-        <Card className="max-w-[90%] border-amber-500/20 bg-card/80 backdrop-blur-sm glow">
+        <Card className="max-w-[90%] border-amber-500/15 dark:border-amber-500/20 bg-card glow">
           <CardContent className="p-4 space-y-4">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-md bg-amber-500/15">
-                <Zap className="w-4 h-4 text-amber-400" />
+              <div className="p-1.5 rounded-md bg-amber-500/8 dark:bg-amber-500/15">
+                <Zap className="w-4 h-4 text-amber-600 dark:text-amber-400" />
               </div>
-              <span className="font-semibold text-sm">Campaign Created! 🎉</span>
+              <span className="font-semibold text-sm">Campaign Created</span>
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-muted/30 text-sm">
+              <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-muted/40 dark:bg-muted/30 text-sm">
                 <span className="text-muted-foreground">Name</span>
                 <span className="font-medium">{campaignName}</span>
               </div>
-              <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-muted/30 text-sm">
+              <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-muted/40 dark:bg-muted/30 text-sm">
                 <span className="text-muted-foreground">Channel</span>
-                <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30">
+                <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-500/20 dark:bg-green-500/15 dark:text-green-400 dark:border-green-500/30">
                   {channel}
                 </Badge>
               </div>
-              <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-muted/30 text-sm">
+              <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-muted/40 dark:bg-muted/30 text-sm">
                 <span className="text-muted-foreground">Recipients</span>
                 <span className="font-bold text-lg">{recipientCount}</span>
               </div>
@@ -636,14 +636,13 @@ export default function NewCampaignPage() {
 
             {step === "CAMPAIGN_CREATED" && (
               <div className="flex gap-2 pt-2">
-                <Button size="sm" onClick={handleDispatch} className="gap-1.5 bg-gradient-to-r from-primary to-purple-600 hover:opacity-90">
+                <Button size="sm" onClick={handleDispatch} className="gap-1.5 bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 text-white">
                   <Rocket className="w-3.5 h-3.5" /> Launch Campaign
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => campaignId && router.push(`/campaigns/${campaignId}`)}
-                  className="border-border/50"
                 >
                   View Details
                 </Button>
@@ -670,9 +669,9 @@ export default function NewCampaignPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-3rem)] animate-fade-in">
       {/* Header */}
-      <div className="flex-shrink-0 pb-4 border-b border-border/30">
+      <div className="flex-shrink-0 pb-4 border-b border-border/50">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-primary/15">
+          <div className="p-2 rounded-xl bg-primary/8 dark:bg-primary/15">
             <Sparkles className="w-5 h-5 text-primary" />
           </div>
           <div>
@@ -710,7 +709,7 @@ export default function NewCampaignPage() {
 
       {/* Input */}
       {step !== "CAMPAIGN_CREATED" && step !== "DISPATCHING" && (
-        <div className="flex-shrink-0 pt-4 border-t border-border/30">
+        <div className="flex-shrink-0 pt-4 border-t border-border/50">
           <div className="flex gap-3">
             <Textarea
               ref={inputRef}
@@ -727,7 +726,7 @@ export default function NewCampaignPage() {
                   ? "Type to refine the segment (e.g., 'make it 90 days instead')..."
                   : "Describe your campaign..."
               }
-              className="min-h-[52px] max-h-[120px] resize-none bg-card border-border/50 text-sm"
+              className="min-h-[52px] max-h-[120px] resize-none text-sm"
               disabled={isProcessing || step === "MESSAGE_DRAFT"}
             />
             <Button
@@ -741,13 +740,13 @@ export default function NewCampaignPage() {
             </Button>
           </div>
           {step === "SEGMENT_PREVIEW" && (
-            <p className="text-[10px] text-muted-foreground mt-2">
-              💡 Type a follow-up to refine, or click &quot;Confirm Segment&quot; above to proceed to message drafting.
+            <p className="text-[10px] text-muted-foreground mt-2 flex items-center gap-1">
+              <Lightbulb className="w-3 h-3" /> Type a follow-up to refine, or click &quot;Confirm Segment&quot; above to proceed to message drafting.
             </p>
           )}
           {step === "MESSAGE_DRAFT" && (
-            <p className="text-[10px] text-muted-foreground mt-2">
-              ✏️ Edit the message template above if needed, then click &quot;Approve & Create Campaign&quot;.
+            <p className="text-[10px] text-muted-foreground mt-2 flex items-center gap-1">
+              <PenLine className="w-3 h-3" /> Edit the message template above if needed, then click &quot;Approve & Create Campaign&quot;.
             </p>
           )}
         </div>

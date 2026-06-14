@@ -80,16 +80,16 @@ export default function CustomersPage() {
   };
 
   const tagColors: Record<string, string> = {
-    vip: "bg-amber-500/15 text-amber-400 border-amber-500/30",
-    "high-value": "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
-    new: "bg-blue-500/15 text-blue-400 border-blue-500/30",
-    "churn-risk": "bg-red-500/15 text-red-400 border-red-500/30",
-    dormant: "bg-gray-500/15 text-gray-400 border-gray-500/30",
-    returning: "bg-teal-500/15 text-teal-400 border-teal-500/30",
-    "loyalty-member": "bg-purple-500/15 text-purple-400 border-purple-500/30",
-    "sale-shopper": "bg-pink-500/15 text-pink-400 border-pink-500/30",
-    referral: "bg-indigo-500/15 text-indigo-400 border-indigo-500/30",
-    premium: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30",
+    vip: "bg-amber-500/10 text-amber-700 border-amber-500/25 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/30",
+    "high-value": "bg-emerald-500/10 text-emerald-700 border-emerald-500/25 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30",
+    new: "bg-blue-500/10 text-blue-700 border-blue-500/25 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/30",
+    "churn-risk": "bg-red-500/10 text-red-700 border-red-500/25 dark:bg-red-500/15 dark:text-red-400 dark:border-red-500/30",
+    dormant: "bg-gray-500/10 text-gray-600 border-gray-500/25 dark:bg-gray-500/15 dark:text-gray-400 dark:border-gray-500/30",
+    returning: "bg-teal-500/10 text-teal-700 border-teal-500/25 dark:bg-teal-500/15 dark:text-teal-400 dark:border-teal-500/30",
+    "loyalty-member": "bg-purple-500/10 text-purple-700 border-purple-500/25 dark:bg-purple-500/15 dark:text-purple-400 dark:border-purple-500/30",
+    "sale-shopper": "bg-pink-500/10 text-pink-700 border-pink-500/25 dark:bg-pink-500/15 dark:text-pink-400 dark:border-pink-500/30",
+    referral: "bg-indigo-500/10 text-indigo-700 border-indigo-500/25 dark:bg-indigo-500/15 dark:text-indigo-400 dark:border-indigo-500/30",
+    premium: "bg-yellow-500/10 text-yellow-700 border-yellow-500/25 dark:bg-yellow-500/15 dark:text-yellow-400 dark:border-yellow-500/30",
   };
 
   return (
@@ -97,7 +97,7 @@ export default function CustomersPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Customers</h1>
         <p className="text-muted-foreground mt-1">
-          {pagination ? `${pagination.total} total customers` : "Loading..."}
+          {pagination ? `${pagination.total.toLocaleString("en-IN")} total customers` : "Loading..."}
         </p>
       </div>
 
@@ -111,15 +111,15 @@ export default function CustomersPage() {
             setSearch(e.target.value);
             setPage(1);
           }}
-          className="pl-9 bg-card border-border/50"
+          className="pl-9"
         />
       </div>
 
       {/* Table */}
-      <div className="rounded-xl border border-border/50 overflow-hidden bg-card/50">
+      <div className="rounded-xl border border-border overflow-hidden bg-card">
         <Table>
           <TableHeader>
-            <TableRow className="hover:bg-transparent border-border/50">
+            <TableRow className="hover:bg-transparent border-border">
               <TableHead>
                 <button onClick={() => handleSort("name")} className="flex items-center gap-1 hover:text-foreground transition-colors">
                   Name <ArrowUpDown className="w-3 h-3" />
@@ -148,7 +148,7 @@ export default function CustomersPage() {
           <TableBody>
             {loading
               ? Array.from({ length: 8 }).map((_, i) => (
-                  <TableRow key={i} className="border-border/30">
+                  <TableRow key={i} className="border-border/50">
                     <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-40" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
@@ -159,7 +159,7 @@ export default function CustomersPage() {
                   </TableRow>
                 ))
               : customers.map((customer) => (
-                  <TableRow key={customer.id} className="border-border/30 hover:bg-muted/30 transition-colors">
+                  <TableRow key={customer.id} className="border-border/50 hover:bg-muted/40 transition-colors">
                     <TableCell className="font-medium">{customer.name}</TableCell>
                     <TableCell className="text-muted-foreground text-sm">{customer.email}</TableCell>
                     <TableCell>{customer.city}</TableCell>
@@ -173,7 +173,7 @@ export default function CustomersPage() {
                             month: "short",
                             year: "numeric",
                           })
-                        : "—"}
+                        : "\u2014"}
                     </TableCell>
                     <TableCell className="text-center">{customer._count.orders}</TableCell>
                     <TableCell>
@@ -212,7 +212,6 @@ export default function CustomersPage() {
               size="sm"
               onClick={() => setPage(Math.max(1, page - 1))}
               disabled={page === 1}
-              className="border-border/50"
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
@@ -221,7 +220,6 @@ export default function CustomersPage() {
               size="sm"
               onClick={() => setPage(Math.min(pagination.totalPages, page + 1))}
               disabled={page === pagination.totalPages}
-              className="border-border/50"
             >
               <ChevronRight className="w-4 h-4" />
             </Button>

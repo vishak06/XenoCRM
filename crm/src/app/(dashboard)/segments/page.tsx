@@ -72,7 +72,7 @@ export default function SegmentsPage() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i} className="border-border/50">
+            <Card key={i}>
               <CardHeader><Skeleton className="h-5 w-48" /></CardHeader>
               <CardContent className="space-y-2">
                 <Skeleton className="h-4 w-full" />
@@ -97,9 +97,9 @@ export default function SegmentsPage() {
       </div>
 
       {segments.length === 0 ? (
-        <Card className="border-border/50 border-dashed">
+        <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-16">
-            <Layers className="w-12 h-12 text-muted-foreground/40 mb-4" />
+            <Layers className="w-12 h-12 text-muted-foreground/30 mb-4" />
             <p className="text-muted-foreground text-center">
               No segments yet. Create one through the AI Campaign builder.
             </p>
@@ -110,18 +110,18 @@ export default function SegmentsPage() {
           {segments.map((segment, index) => (
             <Card
               key={segment.id}
-              className="border-border/50 hover:border-border transition-colors animate-slide-up"
+              className="hover:shadow-md transition-all duration-300 animate-slide-up"
               style={{ animationDelay: `${index * 80}ms` }}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-md bg-primary/10">
+                    <div className="p-1.5 rounded-md bg-primary/8 dark:bg-primary/15">
                       <Layers className="w-3.5 h-3.5 text-primary" />
                     </div>
                     <CardTitle className="text-base">{segment.name}</CardTitle>
                   </div>
-                  <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
+                  <Badge variant="outline" className="bg-blue-500/10 text-blue-700 border-blue-500/20 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/30">
                     <Users className="w-3 h-3 mr-1" />
                     {segment.matchCount}
                   </Badge>
@@ -131,14 +131,14 @@ export default function SegmentsPage() {
                 {segment.description && (
                   <p className="text-sm text-muted-foreground">{segment.description}</p>
                 )}
-                <div className="p-3 rounded-lg bg-muted/30 border border-border/30">
+                <div className="p-3 rounded-lg bg-muted/40 dark:bg-muted/30 border border-border/50">
                   <p className="text-xs font-medium text-muted-foreground mb-1">Rule Summary</p>
                   <p className="text-sm">{segment.englishDescription}</p>
                 </div>
 
                 {/* AI Explanation */}
                 {explanations[segment.id] ? (
-                  <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                  <div className="p-3 rounded-lg bg-primary/5 dark:bg-primary/8 border border-primary/15 dark:border-primary/20">
                     <p className="text-xs font-medium text-primary mb-1 flex items-center gap-1">
                       <Sparkles className="w-3 h-3" /> AI Explanation
                     </p>
