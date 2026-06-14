@@ -5,7 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Users, ShoppingBag, Megaphone, IndianRupee, TrendingUp, Target, ArrowUpRight } from "lucide-react";
+import { Users, ShoppingBag, Megaphone, IndianRupee, TrendingUp, Target, ArrowUpRight, Sparkles, PieChart, Layers, Send } from "lucide-react";
 
 async function getStats() {
   const [customerCount, orderCount, campaignCount, totalRevenue, recentCustomers, activeCampaigns] =
@@ -158,6 +158,68 @@ export default async function DashboardPage() {
             </CardHeader>
           </a>
         </Card>
+      </div>
+
+      {/* Features Overview */}
+      <div className="pt-4">
+        <h2 className="text-xl font-bold tracking-tight mb-4">Core Features</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="bg-card">
+            <CardHeader className="pb-2">
+              <div className="p-2 w-fit rounded-lg bg-blue-500/10 text-blue-500 mb-2">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <CardTitle className="text-base">AI Campaign Builder</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Just type what you want to achieve. Our AI engine automatically drafts highly-converting, personalized messages and selects the perfect audience.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card">
+            <CardHeader className="pb-2">
+              <div className="p-2 w-fit rounded-lg bg-emerald-500/10 text-emerald-500 mb-2">
+                <Layers className="h-5 w-5" />
+              </div>
+              <CardTitle className="text-base">Dynamic Segments</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Group your customers based on purchase history, city, spending habits, and inactivity. Segments update automatically in real-time.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card">
+            <CardHeader className="pb-2">
+              <div className="p-2 w-fit rounded-lg bg-amber-500/10 text-amber-500 mb-2">
+                <PieChart className="h-5 w-5" />
+              </div>
+              <CardTitle className="text-base">Deep Analytics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Visualize your sales funnel, track campaign engagement, and discover your top-performing products with beautifully rendered real-time charts.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card">
+            <CardHeader className="pb-2">
+              <div className="p-2 w-fit rounded-lg bg-purple-500/10 text-purple-500 mb-2">
+                <Send className="h-5 w-5" />
+              </div>
+              <CardTitle className="text-base">Omnichannel Delivery</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Reach your customers wherever they are. Seamlessly dispatch your AI-crafted messages across WhatsApp, SMS, and Email simultaneously.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
