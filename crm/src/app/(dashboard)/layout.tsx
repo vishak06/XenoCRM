@@ -11,11 +11,13 @@ import {
   Sparkles,
   Zap,
   Package,
+  PieChart,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/analytics", label: "Analytics", icon: PieChart },
   { href: "/customers", label: "Customers", icon: Users },
   { href: "/orders", label: "Orders", icon: ShoppingBag },
   { href: "/products", label: "Products", icon: Package },
