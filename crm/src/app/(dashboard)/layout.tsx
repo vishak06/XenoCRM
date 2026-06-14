@@ -13,6 +13,8 @@ import {
   Package,
   PieChart,
   Wand2,
+  BrainCircuit,
+  BarChart3,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
@@ -98,11 +100,17 @@ export default function DashboardLayout({
             {[
               { href: "/campaigns/new", label: "AI Campaign", icon: Sparkles },
               { href: "/segments?create=true", label: "AI Segment Creator", icon: Wand2 },
+              { href: "/ai-insights", label: "AI Insights", icon: BrainCircuit },
+              { href: "/ai-analytics", label: "AI Analytics", icon: BarChart3 },
             ].map((item) => {
               const isActive =
                 item.href === "/campaigns/new"
                   ? pathname === "/campaigns/new"
-                  : pathname === "/segments" && item.href.includes("create=true");
+                  : item.href === "/ai-insights"
+                    ? pathname === "/ai-insights"
+                    : item.href === "/ai-analytics"
+                      ? pathname === "/ai-analytics"
+                      : pathname === "/segments" && item.href.includes("create=true");
               const Icon = item.icon;
 
               return (

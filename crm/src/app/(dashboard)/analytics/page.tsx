@@ -17,9 +17,11 @@ import {
   Legend
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Users, IndianRupee, ShoppingBag, Send, Loader2, UserPlus, ShoppingCart, Megaphone } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface AnalyticsData {
   metrics: {
@@ -68,9 +70,11 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in pb-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Analytics Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Real-time overview of your CRM metrics.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Analytics Dashboard</h1>
+          <p className="text-muted-foreground mt-1">Real-time overview of your CRM metrics.</p>
+        </div>
       </div>
 
       {/* Top Metrics Row */}

@@ -118,19 +118,6 @@ export default function CustomersPage() {
     setPage(1);
   };
 
-  const tagColors: Record<string, string> = {
-    vip: "bg-amber-500/10 text-amber-700 border-amber-500/25 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/30",
-    "high-value": "bg-emerald-500/10 text-emerald-700 border-emerald-500/25 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30",
-    new: "bg-blue-500/10 text-blue-700 border-blue-500/25 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/30",
-    "churn-risk": "bg-red-500/10 text-red-700 border-red-500/25 dark:bg-red-500/15 dark:text-red-400 dark:border-red-500/30",
-    dormant: "bg-gray-500/10 text-gray-600 border-gray-500/25 dark:bg-gray-500/15 dark:text-gray-400 dark:border-gray-500/30",
-    returning: "bg-teal-500/10 text-teal-700 border-teal-500/25 dark:bg-teal-500/15 dark:text-teal-400 dark:border-teal-500/30",
-    "loyalty-member": "bg-purple-500/10 text-purple-700 border-purple-500/25 dark:bg-purple-500/15 dark:text-purple-400 dark:border-purple-500/30",
-    "sale-shopper": "bg-pink-500/10 text-pink-700 border-pink-500/25 dark:bg-pink-500/15 dark:text-pink-400 dark:border-pink-500/30",
-    referral: "bg-indigo-500/10 text-indigo-700 border-indigo-500/25 dark:bg-indigo-500/15 dark:text-indigo-400 dark:border-indigo-500/30",
-    premium: "bg-yellow-500/10 text-yellow-700 border-yellow-500/25 dark:bg-yellow-500/15 dark:text-yellow-400 dark:border-yellow-500/30",
-  };
-
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
