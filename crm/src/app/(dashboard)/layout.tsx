@@ -12,6 +12,7 @@ import {
   Zap,
   Package,
   PieChart,
+  Wand2,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
@@ -89,33 +90,44 @@ export default function DashboardLayout({
             );
           })}
 
-          {/* AI Campaign - special treatment */}
+          {/* AI Tools Section */}
           <div className="pt-3 mt-3 border-t border-sidebar-border">
             <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
               AI Tools
             </p>
-            <Link
-              href="/campaigns/new"
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-200 group relative border
-                ${
-                  pathname === "/campaigns/new"
-                    ? "bg-primary/10 text-primary border-primary/30 nav-active-indicator"
-                    : "text-sidebar-foreground/65 hover:text-primary border-primary/15 hover:border-primary/30 hover:bg-primary/5"
-                }
-              `}
-            >
-              <Sparkles
-                className={`w-[18px] h-[18px] flex-shrink-0 transition-colors ${
-                  pathname === "/campaigns/new"
-                    ? "text-primary"
-                    : "text-primary/60 group-hover:text-primary"
-                }`}
-              />
-              <span>AI Campaign</span>
-              <span className="ml-auto text-[9px] font-bold text-primary-foreground bg-primary px-1.5 py-0.5 rounded-md uppercase tracking-wide">
-                New
-              </span>
-            </Link>
+            {[
+              { href: "/campaigns/new", label: "AI Campaign", icon: Sparkles },
+              { href: "/segments?create=true", label: "AI Segment Creator", icon: Wand2 },
+            ].map((item) => {
+              const isActive =
+                item.href === "/campaigns/new"
+                  ? pathname === "/campaigns/new"
+                  : pathname === "/segments" && item.href.includes("create=true");
+              const Icon = item.icon;
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-200 group relative border mb-1
+                    ${
+                      isActive
+                        ? "bg-primary/10 text-primary border-primary/30 nav-active-indicator"
+                        : "text-sidebar-foreground/65 hover:text-primary border-primary/15 hover:border-primary/30 hover:bg-primary/5"
+                    }
+                  `}
+                >
+                  <Icon
+                    className={`w-[18px] h-[18px] flex-shrink-0 transition-colors ${
+                      isActive
+                        ? "text-primary"
+                        : "text-primary/60 group-hover:text-primary"
+                    }`}
+                  />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
           </div>
         </nav>
 

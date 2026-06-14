@@ -266,11 +266,20 @@ export default function CampaignDetailPage({
                     border: `1px solid ${isDark ? "hsl(230, 10%, 18%)" : "hsl(230, 10%, 90%)"}`,
                     borderRadius: "8px",
                     color: isDark ? "hsl(230, 5%, 90%)" : "hsl(230, 15%, 15%)",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                   }}
+                  labelStyle={{
+                    color: isDark ? "hsl(230, 5%, 90%)" : "hsl(230, 15%, 15%)",
+                    fontWeight: 600,
+                    marginBottom: 4,
+                  }}
+                  itemStyle={{
+                    color: isDark ? "hsl(230, 5%, 80%)" : "hsl(230, 15%, 25%)",
+                  }}
+                  cursor={{ fill: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)" }}
                   formatter={(value: any, _name: any, entry: any) => [
                     `${value} (${entry.payload.pct}%)`,
-                    "",
+                    entry.payload.name,
                   ]}
                 />
                 <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={32}>

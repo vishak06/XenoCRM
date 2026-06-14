@@ -46,6 +46,15 @@ export default function SegmentsPage() {
   const [combinator, setCombinator] = useState("AND");
   const [conditions, setConditions] = useState([{ field: "totalSpend", operator: "greaterThan", value: "" }]);
 
+  // Auto-open dialog when navigating from AI Tools sidebar
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("create") === "true") {
+      setIsAddOpen(true);
+      setActiveTab("ai");
+    }
+  }, []);
+
   const handleAddSegment = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsAdding(true);

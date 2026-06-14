@@ -44,7 +44,8 @@ type ChatStep =
   | "MESSAGE_DRAFT"
   | "CREATING_CAMPAIGN"
   | "CAMPAIGN_CREATED"
-  | "DISPATCHING";
+  | "DISPATCHING"
+  | "DISPATCHED";
 
 interface Message {
   id: string;
@@ -482,6 +483,7 @@ export default function NewCampaignPage() {
       const data = await res.json();
 
       if (data.success) {
+        setStep("DISPATCHED");
         toast.success(`Campaign dispatched: ${data.sent} messages sent`);
         addMessage({
           role: "assistant",
@@ -850,7 +852,7 @@ export default function NewCampaignPage() {
           </div>
 
           {/* Input */}
-          {step !== "CAMPAIGN_CREATED" && step !== "DISPATCHING" && (
+          {step !== "CAMPAIGN_CREATED" && step !== "DISPATCHING" && step !== "DISPATCHED" && (
             <div className="flex-shrink-0 pt-4 border-t border-border/50">
               <div className="flex gap-3">
                 <Textarea
