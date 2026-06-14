@@ -146,6 +146,19 @@ export default function SegmentsPage() {
     }
   };
 
+  const handleDeleteSegment = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this segment? Campaigns using it will keep their snapshot but lose the live link.")) return;
+    
+    try {
+      const res = await fetch(`/api/segments/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete segment");
+      toast.success("Segment deleted");
+      fetchSegments();
+    } catch (error) {
+      toast.error("Failed to delete segment");
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6 animate-fade-in">
@@ -323,10 +336,20 @@ export default function SegmentsPage() {
                     </div>
                     <CardTitle className="text-base">{segment.name}</CardTitle>
                   </div>
-                  <Badge variant="outline" className="bg-blue-500/10 text-blue-700 border-blue-500/20 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/30">
-                    <Users className="w-3 h-3 mr-1" />
-                    {segment.matchCount}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="bg-blue-500/10 text-blue-700 border-blue-500/20 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/30">
+                      <Users className="w-3 h-3 mr-1" />
+                      {segment.matchCount}
+                    </Badge>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => handleDeleteSegment(segment.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
