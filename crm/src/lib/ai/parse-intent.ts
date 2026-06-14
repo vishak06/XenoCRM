@@ -36,7 +36,7 @@ export type ParsedIntent = z.infer<typeof ParsedIntentSchema>;
  * Parses a natural language campaign description into a structured
  * segment definition and message intent using Gemini.
  */
-export async function parseIntent(userMessage: string): Promise<ParsedIntent> {
+export async function parseIntent(userMessage: string, contextStr: string = ""): Promise<ParsedIntent> {
   const model = genAI.getGenerativeModel({
     model: MODEL_NAME,
     systemInstruction: PARSE_INTENT_INSTRUCTION,
@@ -46,7 +46,12 @@ export async function parseIntent(userMessage: string): Promise<ParsedIntent> {
     },
   });
 
-  const result = await model.generateContent(userMessage);
+  let fullMessage = userMessage;
+  if (contextStr) {
+    fullMessage = `User request: ${userMessage}\n\nContext:\n${contextStr}\n\nIf the user refers to an existing segment by name, output its exact ruleDefinition for your response.`;
+  }
+
+  const result = await model.generateContent(fullMessage);
   const responseText = result.response.text();
 
   let parsed: unknown;

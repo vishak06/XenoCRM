@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { parseIntent } from "@/lib/ai/parse-intent";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,7 +14,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await parseIntent(message);
+    const existingSegments = await prisma.segment.findMany({
+      select: { name: true, ruleDefinition: true }
+    });
+
+    let contextStr = "";
+    if (existingSegments.length > 0) {
+      contextStr = `Here are the existing segments in the database:\n${JSON.stringify(existingSegments, null, 2)}`;
+    }
+
+    const result = await parseIntent(message, contextStr);
 
     return NextResponse.json(result);
   } catch (error) {

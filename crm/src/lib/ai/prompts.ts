@@ -94,7 +94,8 @@ Write a single message template for the given channel, tone, and offer. Use pers
 3. Include the offer/promotion clearly
 4. Add a clear call-to-action
 5. Match the requested tone
-6. Return ONLY the message template text, nothing else`;
+6. Return ONLY the message template text, nothing else
+7. DO NOT include any URLs, placeholder links, or links of any kind in the message`;
 
 export const EXPLAIN_SEGMENT_INSTRUCTION = `You are explaining a customer segment's targeting rules in plain English for a marketing team member.
 
