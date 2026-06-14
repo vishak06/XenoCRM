@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   Sparkles,
   Zap,
+  Package,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
@@ -17,6 +18,7 @@ const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/customers", label: "Customers", icon: Users },
   { href: "/orders", label: "Orders", icon: ShoppingBag },
+  { href: "/products", label: "Products", icon: Package },
   { href: "/segments", label: "Segments", icon: Layers },
   { href: "/campaigns", label: "Campaigns", icon: Megaphone },
 ];

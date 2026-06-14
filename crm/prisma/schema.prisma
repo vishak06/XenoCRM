@@ -120,3 +120,13 @@ model CommunicationLog {
   @@index([customerId])
   @@index([status])
 }
+
+model Product {
+  id        String   @id @default(cuid())
+  name      String
+  category  String
+  price     Decimal  @db.Decimal(12, 2)
+  createdAt DateTime @default(now())
+
+  @@index([category])
+}
