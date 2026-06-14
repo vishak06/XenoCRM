@@ -80,7 +80,7 @@ export default function AIAnalyticsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in max-w-4xl mx-auto pb-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
             <div className="p-2 rounded-xl bg-primary/10">
@@ -96,7 +96,7 @@ export default function AIAnalyticsPage() {
           variant="outline"
           onClick={generateSummary}
           disabled={loading}
-          className="gap-2"
+          className="gap-2 w-full sm:w-auto"
         >
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
           Regenerate

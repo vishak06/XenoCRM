@@ -143,7 +143,7 @@ export default function AIInsightsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left Column: Search & Select */}
-        <div className="col-span-1 flex flex-col h-[600px]">
+        <div className="col-span-1 flex flex-col h-[400px] md:h-[600px]">
           <form onSubmit={handleSearch} className="flex gap-2 mb-4 flex-shrink-0">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -194,7 +194,7 @@ export default function AIInsightsPage() {
         {/* Right Column: Insights Display */}
         <div className="col-span-1 md:col-span-2">
           {selectedCustomer ? (
-            <Card className="border-border/50 shadow-sm overflow-hidden bg-card/50 flex flex-col h-[600px]">
+            <Card className="border-border/50 shadow-sm overflow-hidden bg-card/50 flex flex-col h-[400px] md:h-[600px]">
               <div className="px-6 pt-6 pb-4 border-b border-border/50 bg-card flex-shrink-0">
                 <div className="flex items-center justify-between">
                   <div>

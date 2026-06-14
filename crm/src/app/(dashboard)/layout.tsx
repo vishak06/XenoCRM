@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import {
   Users,
   ShoppingBag,
@@ -15,8 +16,10 @@ import {
   Wand2,
   BrainCircuit,
   BarChart3,
+  Menu,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -28,136 +31,166 @@ const navItems = [
   { href: "/campaigns", label: "Campaigns", icon: Megaphone },
 ];
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const pathname = usePathname();
-
+function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-[260px] flex-shrink-0 border-r border-sidebar-border bg-sidebar flex flex-col">
-        {/* Logo */}
-        <div className="px-5 py-5 border-b border-sidebar-border">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
-              <Zap className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-[15px] font-bold tracking-tight gradient-text leading-tight">
-                Xeno CRM
-              </h1>
-              <p className="text-[10px] text-muted-foreground tracking-widest uppercase leading-tight">
-                AI Marketing
-              </p>
-            </div>
-          </Link>
-        </div>
+    <>
+      {/* Logo */}
+      <div className="px-5 py-5 border-b border-sidebar-border">
+        <Link href="/" className="flex items-center gap-2.5 group" onClick={onNavigate}>
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
+            <Zap className="w-4 h-4 text-primary-foreground" />
+          </div>
+          <div>
+            <h1 className="text-[15px] font-bold tracking-tight gradient-text leading-tight">
+              Xeno CRM
+            </h1>
+            <p className="text-[10px] text-muted-foreground tracking-widest uppercase leading-tight">
+              AI Marketing
+            </p>
+          </div>
+        </Link>
+      </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+      {/* Navigation */}
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+        <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+          Navigation
+        </p>
+        {navItems.map((item) => {
+          const isActive =
+            item.href === "/"
+              ? pathname === "/"
+              : pathname.startsWith(item.href);
+          const Icon = item.icon;
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={onNavigate}
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-200 group relative
+                ${
+                  isActive
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground nav-active-indicator"
+                    : "text-sidebar-foreground/65 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                }
+              `}
+            >
+              <Icon
+                className={`w-[18px] h-[18px] transition-colors flex-shrink-0 ${
+                  isActive
+                    ? "text-primary"
+                    : "text-muted-foreground group-hover:text-foreground"
+                }`}
+              />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+
+        {/* AI Tools Section */}
+        <div className="pt-3 mt-3 border-t border-sidebar-border">
           <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-            Navigation
+            AI Tools
           </p>
-          {navItems.map((item) => {
+          {[
+            { href: "/campaigns/new", label: "AI Campaign", icon: Sparkles },
+            { href: "/segments?create=true", label: "AI Segment Creator", icon: Wand2 },
+            { href: "/ai-insights", label: "AI Insights", icon: BrainCircuit },
+            { href: "/ai-analytics", label: "AI Analytics", icon: BarChart3 },
+          ].map((item) => {
             const isActive =
-              item.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.href);
+              item.href === "/campaigns/new"
+                ? pathname === "/campaigns/new"
+                : item.href === "/ai-insights"
+                  ? pathname === "/ai-insights"
+                  : item.href === "/ai-analytics"
+                    ? pathname === "/ai-analytics"
+                    : pathname === "/segments" && item.href.includes("create=true");
             const Icon = item.icon;
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-200 group relative
+                onClick={onNavigate}
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-200 group relative border mb-1
                   ${
                     isActive
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground nav-active-indicator"
-                      : "text-sidebar-foreground/65 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                      ? "bg-primary/10 text-primary border-primary/30 nav-active-indicator"
+                      : "text-sidebar-foreground/65 hover:text-primary border-primary/15 hover:border-primary/30 hover:bg-primary/5"
                   }
                 `}
               >
                 <Icon
-                  className={`w-[18px] h-[18px] transition-colors flex-shrink-0 ${
+                  className={`w-[18px] h-[18px] flex-shrink-0 transition-colors ${
                     isActive
                       ? "text-primary"
-                      : "text-muted-foreground group-hover:text-foreground"
+                      : "text-primary/60 group-hover:text-primary"
                   }`}
                 />
                 <span>{item.label}</span>
               </Link>
             );
           })}
+        </div>
+      </nav>
 
-          {/* AI Tools Section */}
-          <div className="pt-3 mt-3 border-t border-sidebar-border">
-            <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-              AI Tools
+      {/* Footer */}
+      <div className="px-4 py-3 border-t border-sidebar-border">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-medium text-muted-foreground">
+              Xeno CRM
             </p>
-            {[
-              { href: "/campaigns/new", label: "AI Campaign", icon: Sparkles },
-              { href: "/segments?create=true", label: "AI Segment Creator", icon: Wand2 },
-              { href: "/ai-insights", label: "AI Insights", icon: BrainCircuit },
-              { href: "/ai-analytics", label: "AI Analytics", icon: BarChart3 },
-            ].map((item) => {
-              const isActive =
-                item.href === "/campaigns/new"
-                  ? pathname === "/campaigns/new"
-                  : item.href === "/ai-insights"
-                    ? pathname === "/ai-insights"
-                    : item.href === "/ai-analytics"
-                      ? pathname === "/ai-analytics"
-                      : pathname === "/segments" && item.href.includes("create=true");
-              const Icon = item.icon;
-
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-200 group relative border mb-1
-                    ${
-                      isActive
-                        ? "bg-primary/10 text-primary border-primary/30 nav-active-indicator"
-                        : "text-sidebar-foreground/65 hover:text-primary border-primary/15 hover:border-primary/30 hover:bg-primary/5"
-                    }
-                  `}
-                >
-                  <Icon
-                    className={`w-[18px] h-[18px] flex-shrink-0 transition-colors ${
-                      isActive
-                        ? "text-primary"
-                        : "text-primary/60 group-hover:text-primary"
-                    }`}
-                  />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
+            <p className="text-[10px] text-muted-foreground/50">
+              v1.0.0 &middot; Demo
+            </p>
           </div>
-        </nav>
+          <ThemeToggle />
+        </div>
+      </div>
+    </>
+  );
+}
 
-        {/* Footer */}
-        <div className="px-4 py-3 border-t border-sidebar-border">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-medium text-muted-foreground">
-                Xeno CRM
-              </p>
-              <p className="text-[10px] text-muted-foreground/50">
-                v1.0.0 &middot; Demo
-              </p>
-            </div>
-            <ThemeToggle />
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  return (
+    <div className="flex h-screen overflow-hidden flex-col md:flex-row">
+      {/* Mobile Top Nav */}
+      <div className="md:hidden flex items-center justify-between px-4 py-3 border-b bg-background flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger className="p-2 -ml-2 text-muted-foreground hover:text-foreground">
+              <Menu className="w-5 h-5" />
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[260px] p-0 flex flex-col bg-sidebar border-sidebar-border">
+              <SidebarContent pathname={pathname} onNavigate={() => setMobileMenuOpen(false)} />
+            </SheetContent>
+          </Sheet>
+          <div className="flex items-center gap-2">
+            <Zap className="w-4 h-4 text-primary" />
+            <h1 className="text-[15px] font-bold tracking-tight">Xeno CRM</h1>
           </div>
         </div>
+        <ThemeToggle />
+      </div>
+
+      {/* Desktop Sidebar */}
+      <aside className="w-[260px] flex-shrink-0 border-r border-sidebar-border bg-sidebar hidden md:flex flex-col">
+        <SidebarContent pathname={pathname} />
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto bg-background">
-        <div className="p-6 lg:p-8 max-w-7xl mx-auto">{children}</div>
+        <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">{children}</div>
       </main>
     </div>
   );
