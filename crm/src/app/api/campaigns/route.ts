@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       data: {
         name,
         segmentId: segmentId || null,
-        segmentRuleSnapshot: segmentRule as unknown as Record<string, unknown>,
+        segmentRuleSnapshot: segmentRule as any,
         messageTemplate,
         channel,
         status: "QUEUED",
