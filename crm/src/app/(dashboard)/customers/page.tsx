@@ -142,13 +142,13 @@ export default function CustomersPage() {
         </div>
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger render={<Button className="gap-2"><Plus className="w-4 h-4" /> Add Customer</Button>} />
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Add Customer</DialogTitle>
+          <DialogContent className="sm:max-w-[425px] p-6">
+            <DialogHeader className="mb-4">
+              <DialogTitle className="text-xl">Add Customer</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleAddCustomer} className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Name</label>
+            <form onSubmit={handleAddCustomer} className="space-y-6 pt-2">
+              <div className="space-y-3">
+                <label className="text-sm font-medium block mb-1">Name</label>
                 <Input
                   required
                   value={newCustomer.name}
@@ -156,8 +156,8 @@ export default function CustomersPage() {
                   placeholder="John Doe"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Email</label>
+              <div className="space-y-3">
+                <label className="text-sm font-medium block mb-1">Email</label>
                 <Input
                   required
                   type="email"
@@ -166,8 +166,8 @@ export default function CustomersPage() {
                   placeholder="john@example.com"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Phone</label>
+              <div className="space-y-3">
+                <label className="text-sm font-medium block mb-1">Phone</label>
                 <Input
                   required
                   value={newCustomer.phone}
@@ -175,8 +175,8 @@ export default function CustomersPage() {
                   placeholder="+91 9876543210"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">City</label>
+              <div className="space-y-3">
+                <label className="text-sm font-medium block mb-1">City</label>
                 <Input
                   required
                   value={newCustomer.city}

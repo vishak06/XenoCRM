@@ -154,32 +154,44 @@ export default function OrdersPage() {
         </div>
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger render={<Button className="gap-2"><Plus className="w-4 h-4" /> Add Order</Button>} />
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Add Order</DialogTitle>
+          <DialogContent className="sm:max-w-[500px] p-6">
+            <DialogHeader className="mb-4">
+              <DialogTitle className="text-xl">Add Order</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleAddOrder} className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Customer</label>
+            <form onSubmit={handleAddOrder} className="space-y-6 pt-2">
+              <div className="space-y-3">
+                <label className="text-sm font-medium block mb-1">Customer</label>
                 <select
                   required
-                  className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
                   value={newOrder.customerId}
                   onChange={(e) => setNewOrder({ ...newOrder, customerId: e.target.value })}
                 >
-                  <option value="" disabled>Select a customer...</option>
+                  <option value="" disabled className="text-muted-foreground">Select a customer...</option>
                   {availableCustomers.map(c => (
                     <option key={c.id} value={c.id}>{c.name} ({c.email})</option>
                   ))}
                 </select>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Products</label>
-                <div className="space-y-2 mb-2">
+              
+              <div className="p-4 bg-muted/20 border border-border/50 rounded-xl space-y-5">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium block mb-1">Order Items</label>
+                  <Button type="button" variant="secondary" size="sm" className="h-8" onClick={() => setSelectedItems([...selectedItems, { productId: AVAILABLE_PRODUCTS[0].id, qty: 1 }])}>
+                    <Plus className="w-3.5 h-3.5 mr-1.5" /> Add Item
+                  </Button>
+                </div>
+                
+                <div className="space-y-3">
+                  {selectedItems.length === 0 && (
+                    <div className="text-sm text-muted-foreground text-center py-4 border border-dashed rounded-lg border-border">
+                      No items added yet.
+                    </div>
+                  )}
                   {selectedItems.map((item, i) => (
-                    <div key={i} className="flex gap-2 items-center">
+                    <div key={i} className="flex gap-3 items-center bg-card p-2 rounded-lg border border-border shadow-sm">
                       <select 
-                        className="flex h-9 flex-1 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        className="flex h-9 flex-1 rounded-md border border-input bg-background px-3 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring text-foreground"
                         value={item.productId}
                         onChange={(e) => {
                           const newItems = [...selectedItems];
@@ -191,30 +203,33 @@ export default function OrdersPage() {
                           <option key={p.id} value={p.id}>{p.name} - ₹{p.price}</option>
                         ))}
                       </select>
-                      <Input 
-                        type="number" 
-                        min="1" 
-                        className="w-20 h-9" 
-                        value={item.qty} 
-                        onChange={(e) => {
-                          const newItems = [...selectedItems];
-                          newItems[i].qty = parseInt(e.target.value) || 1;
-                          setSelectedItems(newItems);
-                        }}
-                      />
-                      <Button type="button" variant="ghost" size="sm" onClick={() => setSelectedItems(selectedItems.filter((_, idx) => idx !== i))}>
-                        Remove
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">Qty</span>
+                        <Input 
+                          type="number" 
+                          min="1" 
+                          className="w-16 h-9 bg-background text-foreground" 
+                          value={item.qty} 
+                          onChange={(e) => {
+                            const newItems = [...selectedItems];
+                            newItems[i].qty = parseInt(e.target.value) || 1;
+                            setSelectedItems(newItems);
+                          }}
+                        />
+                      </div>
+                      <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-muted-foreground hover:text-destructive" onClick={() => setSelectedItems(selectedItems.filter((_, idx) => idx !== i))}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
                       </Button>
                     </div>
                   ))}
-                  <Button type="button" variant="outline" size="sm" onClick={() => setSelectedItems([...selectedItems, { productId: AVAILABLE_PRODUCTS[0].id, qty: 1 }])}>
-                    <Plus className="w-4 h-4 mr-1" /> Add Product
-                  </Button>
                 </div>
-                <div className="text-sm font-medium">Total Amount: ₹{computedAmount.toLocaleString("en-IN")}</div>
+                <div className="flex justify-between items-center pt-2 border-t border-border/50">
+                  <span className="text-sm font-medium text-muted-foreground">Total Amount</span>
+                  <span className="font-semibold text-lg">₹{computedAmount.toLocaleString("en-IN")}</span>
+                </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Order Date</label>
+              <div className="space-y-3">
+                <label className="text-sm font-medium block mb-1">Order Date</label>
                 <Input
                   required
                   type="datetime-local"
@@ -222,7 +237,7 @@ export default function OrdersPage() {
                   onChange={(e) => setNewOrder({ ...newOrder, orderDate: e.target.value })}
                 />
               </div>
-              <DialogFooter className="pt-4">
+              <DialogFooter className="pt-5">
                 <Button type="submit" disabled={isAdding} className="w-full">
                   {isAdding ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                   Save Order
