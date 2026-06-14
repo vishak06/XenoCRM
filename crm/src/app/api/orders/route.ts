@@ -52,7 +52,19 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const order = await prisma.order.create({ data: body });
+    
+    // Create order and update customer stats in a transaction
+    const [order] = await prisma.$transaction([
+      prisma.order.create({ data: body }),
+      prisma.customer.update({
+        where: { id: body.customerId },
+        data: {
+          totalSpend: { increment: body.amount },
+          lastOrderDate: new Date(body.orderDate),
+        },
+      }),
+    ]);
+    
     return NextResponse.json(order, { status: 201 });
   } catch (error) {
     console.error("[API] POST /api/orders error:", error);

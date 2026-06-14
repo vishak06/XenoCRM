@@ -5,8 +5,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Layers, Users, Sparkles, Loader2 } from "lucide-react";
+import { Layers, Users, Sparkles, Loader2, Plus, Trash2, PlusCircle } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Segment {
   id: string;
@@ -23,6 +34,67 @@ export default function SegmentsPage() {
   const [loading, setLoading] = useState(true);
   const [explaining, setExplaining] = useState<string | null>(null);
   const [explanations, setExplanations] = useState<Record<string, string>>({});
+
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+  const [activeTab, setActiveTab] = useState("ai");
+  const [segmentName, setSegmentName] = useState("");
+  const [segmentDesc, setSegmentDesc] = useState("");
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [combinator, setCombinator] = useState("AND");
+  const [conditions, setConditions] = useState([{ field: "totalSpend", operator: "greaterThan", value: "" }]);
+
+  const handleAddSegment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsAdding(true);
+    try {
+      let finalRule;
+      if (activeTab === "ai") {
+        const aiRes = await fetch("/api/ai/parse-intent", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: aiPrompt }),
+        });
+        if (!aiRes.ok) throw new Error("Failed to parse AI intent");
+        const aiData = await aiRes.json();
+        finalRule = aiData.segment;
+      } else {
+        finalRule = {
+          combinator,
+          conditions: conditions.map(c => ({
+             ...c, 
+             value: isNaN(Number(c.value)) ? c.value : Number(c.value) 
+          }))
+        };
+      }
+
+      const res = await fetch("/api/segments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: segmentName,
+          description: segmentDesc,
+          ruleDefinition: finalRule,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to create segment");
+      }
+      toast.success("Segment created successfully");
+      setIsAddOpen(false);
+      setSegmentName("");
+      setSegmentDesc("");
+      setAiPrompt("");
+      setConditions([{ field: "totalSpend", operator: "greaterThan", value: "" }]);
+      fetchSegments();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to create segment");
+    } finally {
+      setIsAdding(false);
+    }
+  };
 
   useEffect(() => {
     fetchSegments();
@@ -94,6 +166,104 @@ export default function SegmentsPage() {
             {segments.length} saved segments with live match counts
           </p>
         </div>
+        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+          <DialogTrigger render={<Button className="gap-2"><Plus className="w-4 h-4" /> Create Segment</Button>} />
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Create Segment</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleAddSegment} className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Name</label>
+                <Input required value={segmentName} onChange={e => setSegmentName(e.target.value)} placeholder="High Value Customers" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Description</label>
+                <Input value={segmentDesc} onChange={e => setSegmentDesc(e.target.value)} placeholder="Customers who spend more than 1000" />
+              </div>
+
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-4">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="ai"><Sparkles className="w-4 h-4 mr-2" /> AI Generator</TabsTrigger>
+                  <TabsTrigger value="manual"><Layers className="w-4 h-4 mr-2" /> Manual Builder</TabsTrigger>
+                </TabsList>
+                <TabsContent value="ai" className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground">Prompt</label>
+                    <Textarea 
+                      placeholder="e.g. Customers in Mumbai who spent over 5000 and haven't ordered in 30 days"
+                      value={aiPrompt}
+                      onChange={e => setAiPrompt(e.target.value)}
+                      className="min-h-[100px]"
+                      required={activeTab === "ai"}
+                    />
+                  </div>
+                </TabsContent>
+                <TabsContent value="manual" className="space-y-4 mt-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <label className="text-sm font-medium">Match</label>
+                    <select className="text-sm rounded border bg-transparent p-1" value={combinator} onChange={e => setCombinator(e.target.value)}>
+                      <option value="AND">ALL</option>
+                      <option value="OR">ANY</option>
+                    </select>
+                    <span className="text-sm">conditions</span>
+                  </div>
+                  
+                  {conditions.map((cond, i) => (
+                    <div key={i} className="flex gap-2 items-center">
+                      <select className="text-sm rounded border bg-transparent p-1.5 flex-1" value={cond.field} onChange={e => {
+                        const newConds = [...conditions];
+                        newConds[i].field = e.target.value;
+                        setConditions(newConds);
+                      }}>
+                        <option value="city">City</option>
+                        <option value="totalSpend">Total Spend</option>
+                        <option value="lastOrderDate">Last Order Date</option>
+                        <option value="tags">Tags</option>
+                        <option value="orderCount">Order Count</option>
+                      </select>
+                      <select className="text-sm rounded border bg-transparent p-1.5 flex-1" value={cond.operator} onChange={e => {
+                        const newConds = [...conditions];
+                        newConds[i].operator = e.target.value;
+                        setConditions(newConds);
+                      }}>
+                        <option value="equals">Equals</option>
+                        <option value="notEquals">Not Equals</option>
+                        <option value="greaterThan">Greater Than</option>
+                        <option value="lessThan">Less Than</option>
+                        <option value="olderThanDays">Older Than (days)</option>
+                        <option value="withinDays">Within (days)</option>
+                        <option value="contains">Contains</option>
+                      </select>
+                      <Input className="w-1/4 h-8" required={activeTab === "manual"} value={cond.value} onChange={e => {
+                        const newConds = [...conditions];
+                        newConds[i].value = e.target.value;
+                        setConditions(newConds);
+                      }} />
+                      <Button type="button" variant="ghost" size="icon-sm" onClick={() => {
+                        if (conditions.length > 1) {
+                          setConditions(conditions.filter((_, idx) => idx !== i));
+                        }
+                      }}>
+                        <Trash2 className="w-4 h-4 text-muted-foreground" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => setConditions([...conditions, { field: "city", operator: "equals", value: "" }])}>
+                    <PlusCircle className="w-4 h-4 mr-2" /> Add Condition
+                  </Button>
+                </TabsContent>
+              </Tabs>
+
+              <DialogFooter className="pt-4">
+                <Button type="submit" disabled={isAdding} className="w-full">
+                  {isAdding ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                  Save Segment
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {segments.length === 0 ? (
