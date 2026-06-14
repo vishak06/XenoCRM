@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get("category");
     const limit = parseInt(searchParams.get("limit") || "100");
 
-    const products = await prisma.product.findMany({
+    const products = await (prisma as any).product.findMany({
       where: category ? { category } : undefined,
       take: limit,
       orderBy: { category: "asc" },
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const product = await prisma.product.create({
+    const product = await (prisma as any).product.create({
       data: {
         name: body.name,
         category: body.category,

@@ -1,10 +1,12 @@
 "use client";
 
+import Link from "next/link";
+
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Layers, Users, Sparkles, Loader2, Plus, Trash2, PlusCircle } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -327,31 +329,44 @@ export default function SegmentsPage() {
                   <p className="text-sm">{segment.englishDescription}</p>
                 </div>
 
-                {/* AI Explanation */}
-                {explanations[segment.id] ? (
-                  <div className="p-3 rounded-lg bg-primary/5 dark:bg-primary/8 border border-primary/15 dark:border-primary/20">
-                    <p className="text-xs font-medium text-primary mb-1 flex items-center gap-1">
-                      <Sparkles className="w-3 h-3" /> AI Explanation
-                    </p>
-                    <p className="text-sm text-muted-foreground">{explanations[segment.id]}</p>
-                  </div>
-                ) : (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs text-muted-foreground hover:text-primary"
-                    onClick={() => handleExplain(segment)}
-                    disabled={explaining === segment.id}
-                  >
-                    {explaining === segment.id ? (
-                      <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Explaining...</>
-                    ) : (
-                      <><Sparkles className="w-3 h-3 mr-1" /> Explain with AI</>
-                    )}
-                  </Button>
+                <div className="flex items-center justify-between mt-2">
+                  {explanations[segment.id] ? (
+                    <div className="p-3 rounded-lg bg-primary/5 dark:bg-primary/8 border border-primary/15 dark:border-primary/20 w-full mb-2">
+                      <p className="text-xs font-medium text-primary mb-1 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" /> AI Explanation
+                      </p>
+                      <p className="text-sm text-muted-foreground">{explanations[segment.id]}</p>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs text-muted-foreground hover:text-primary px-2"
+                      onClick={() => handleExplain(segment)}
+                      disabled={explaining === segment.id}
+                    >
+                      {explaining === segment.id ? (
+                        <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Explaining...</>
+                      ) : (
+                        <><Sparkles className="w-3 h-3 mr-1" /> Explain with AI</>
+                      )}
+                    </Button>
+                  )}
+                  
+                  {!explanations[segment.id] && (
+                    <Link href={`/segments/${segment.id}`} className={buttonVariants({ variant: "secondary", size: "sm", className: "text-xs h-8" })}>
+                      View Customers
+                    </Link>
+                  )}
+                </div>
+
+                {explanations[segment.id] && (
+                  <Link href={`/segments/${segment.id}`} className={buttonVariants({ variant: "secondary", size: "sm", className: "w-full mt-2" })}>
+                    View Customers
+                  </Link>
                 )}
 
-                <p className="text-[10px] text-muted-foreground/60">
+                <p className="text-[10px] text-muted-foreground/60 pt-2 border-t border-border/50">
                   Created {new Date(segment.createdAt).toLocaleDateString("en-IN", {
                     day: "numeric",
                     month: "short",
