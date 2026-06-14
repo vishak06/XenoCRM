@@ -14,4 +14,4 @@ if (!globalForGenAI.genAI) {
 
 export const genAI = globalForGenAI.genAI;
 
-export const MODEL_NAME = "gemini-flash-latest";
+export const MODEL_NAME = "gemini-2.5-flash";

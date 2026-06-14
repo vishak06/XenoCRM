@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Sparkles,
   Send,
@@ -18,15 +19,17 @@ import {
   RefreshCw,
   Layers,
   Zap,
-  Brain,
-  AlertCircle,
-  ArrowRight,
   CheckCircle2,
   Lightbulb,
   PenLine,
+  ArrowRight,
+  Plus,
+  Clock,
+  Trash2
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { formatDistanceToNow } from "date-fns";
 
 // ============================================
 // Types
@@ -76,20 +79,40 @@ interface ParsedIntent {
   };
 }
 
+interface ChatSession {
+  id: string;
+  updatedAt: number;
+  messages: Message[];
+  step: ChatStep;
+  currentSegment: ParsedIntent["segment"] | null;
+  currentMessageIntent: ParsedIntent["messageIntent"] | null;
+  currentPreview: SegmentPreview | null;
+  currentTemplate: string;
+  campaignId: string | null;
+}
+
+const DEFAULT_WELCOME: Message = {
+  id: "welcome",
+  role: "assistant",
+  content:
+    "Welcome to the AI Campaign Builder. Describe your campaign in natural language, and I'll help you create it.\n\nFor example:\n\u2022 \"Customers in Bangalore who spent over \u20B910,000 and haven't ordered in 60 days \u2014 send a 15% off coupon via WhatsApp\"\n\u2022 \"Email VIP customers about our new summer collection with an exclusive early access offer\"\n\u2022 \"SMS customers in Mumbai tagged as churn-risk with a win-back discount\"",
+};
+
 // ============================================
 // Component
 // ============================================
 
 export default function NewCampaignPage() {
   const router = useRouter();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "welcome",
-      role: "assistant",
-      content:
-        "Welcome to the AI Campaign Builder. Describe your campaign in natural language, and I'll help you create it.\n\nFor example:\n\u2022 \"Customers in Bangalore who spent over \u20B910,000 and haven't ordered in 60 days \u2014 send a 15% off coupon via WhatsApp\"\n\u2022 \"Email VIP customers about our new summer collection with an exclusive early access offer\"\n\u2022 \"SMS customers in Mumbai tagged as churn-risk with a win-back discount\"",
-    },
-  ]);
+  
+  // App State
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [activeTab, setActiveTab] = useState("active");
+  const [history, setHistory] = useState<ChatSession[]>([]);
+
+  // Session State
+  const [sessionId, setSessionId] = useState<string>("");
+  const [messages, setMessages] = useState<Message[]>([DEFAULT_WELCOME]);
   const [inputValue, setInputValue] = useState("");
   const [step, setStep] = useState<ChatStep>("IDLE");
   const [currentSegment, setCurrentSegment] = useState<ParsedIntent["segment"] | null>(null);
@@ -102,13 +125,98 @@ export default function NewCampaignPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  // Scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, activeTab]);
+
+  // Initial Load from LocalStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("ai-campaign-history");
+    let loadedHistory: ChatSession[] = [];
+    if (saved) {
+      try {
+        loadedHistory = JSON.parse(saved);
+        setHistory(loadedHistory);
+      } catch (e) {
+        console.error("Failed to parse history");
+      }
+    }
+
+    if (loadedHistory.length > 0) {
+      // Auto-resume the most recent session
+      restoreSession(loadedHistory[0]);
+    } else {
+      // Start a fresh session
+      setSessionId("session-" + Date.now());
+    }
+    
+    setIsLoaded(true);
+  }, []);
+
+  // Save to LocalStorage on state changes
+  useEffect(() => {
+    if (!isLoaded || !sessionId) return;
+    
+    // Don't save if it's just the default welcome message with nothing else
+    if (messages.length === 1 && messages[0].id === "welcome") return;
+
+    setHistory((prev) => {
+      const existing = prev.filter((s) => s.id !== sessionId);
+      const updated = [
+        {
+          id: sessionId,
+          updatedAt: Date.now(),
+          messages,
+          step,
+          currentSegment,
+          currentMessageIntent,
+          currentPreview,
+          currentTemplate,
+          campaignId,
+        },
+        ...existing,
+      ].sort((a, b) => b.updatedAt - a.updatedAt);
+      
+      localStorage.setItem("ai-campaign-history", JSON.stringify(updated));
+      return updated;
+    });
+  }, [messages, step, currentSegment, currentMessageIntent, currentPreview, currentTemplate, campaignId, sessionId, isLoaded]);
 
   // ============================================
   // Helper functions
   // ============================================
+
+  const restoreSession = (session: ChatSession) => {
+    setSessionId(session.id);
+    setMessages(session.messages);
+    setStep(session.step);
+    setCurrentSegment(session.currentSegment);
+    setCurrentMessageIntent(session.currentMessageIntent);
+    setCurrentPreview(session.currentPreview);
+    setCurrentTemplate(session.currentTemplate);
+    setCampaignId(session.campaignId);
+    setActiveTab("active");
+  };
+
+  const startNewSession = () => {
+    setSessionId("session-" + Date.now());
+    setMessages([{ ...DEFAULT_WELCOME, id: `welcome-${Date.now()}` }]);
+    setStep("IDLE");
+    setCurrentSegment(null);
+    setCurrentMessageIntent(null);
+    setCurrentPreview(null);
+    setCurrentTemplate("");
+    setCampaignId(null);
+    setActiveTab("active");
+  };
+
+  const clearHistory = () => {
+    localStorage.removeItem("ai-campaign-history");
+    setHistory([]);
+    startNewSession();
+    toast.success("History cleared");
+  };
 
   const addMessage = (msg: Omit<Message, "id">) => {
     setMessages((prev) => [
@@ -186,7 +294,13 @@ export default function NewCampaignPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ruleDefinition: segment }),
       });
-      const preview: SegmentPreview = await previewRes.json();
+      
+      const responseData = await previewRes.json();
+      if (!previewRes.ok) {
+        throw new Error(responseData.error || "Failed to preview segment");
+      }
+      
+      const preview: SegmentPreview = responseData;
       setCurrentPreview(preview);
 
       setMessages((prev) => {
@@ -274,7 +388,10 @@ export default function NewCampaignPage() {
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to draft message");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to draft message");
+      }
 
       const data = await res.json();
       setCurrentTemplate(data.messageTemplate);
@@ -300,10 +417,10 @@ export default function NewCampaignPage() {
       });
 
       setStep("MESSAGE_DRAFT");
-    } catch {
+    } catch (error: any) {
       addMessage({
         role: "assistant",
-        content: "Failed to draft message. Please try again.",
+        content: error?.message || "Failed to draft message. Please try again.",
       });
       setStep("SEGMENT_PREVIEW");
     }
@@ -658,6 +775,14 @@ export default function NewCampaignPage() {
   // Main render
   // ============================================
 
+  if (!isLoaded) {
+    return (
+      <div className="flex h-[calc(100vh-100px)] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   const isProcessing = [
     "PARSING",
     "REFINING",
@@ -668,89 +793,164 @@ export default function NewCampaignPage() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-3rem)] animate-fade-in">
-      {/* Header */}
-      <div className="flex-shrink-0 pb-4 border-b border-border/50">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-primary/8 dark:bg-primary/15">
-            <Sparkles className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">AI Campaign Builder</h1>
-            <p className="text-sm text-muted-foreground">
-              Describe your campaign and let AI handle the rest
-            </p>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
+        {/* Header */}
+        <div className="flex-shrink-0 pb-4 border-b border-border/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-primary/8 dark:bg-primary/15">
+                <Sparkles className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold tracking-tight">AI Campaign Builder</h1>
+                <p className="text-sm text-muted-foreground">
+                  Describe your campaign and let AI handle the rest
+                </p>
+              </div>
+            </div>
+            <TabsList className="bg-muted/50 border border-border/50">
+              <TabsTrigger value="active" className="text-xs">Active Session</TabsTrigger>
+              <TabsTrigger value="history" className="text-xs flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5" /> History
+              </TabsTrigger>
+            </TabsList>
           </div>
         </div>
-      </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto py-6 space-y-4 px-1">
-        {messages.map((msg) => (
-          <div key={msg.id}>{renderMessage(msg)}</div>
-        ))}
-
-        {isProcessing && (
-          <div className="flex justify-start animate-slide-up">
-            <div className="glass rounded-2xl rounded-bl-sm px-4 py-3 flex items-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin text-primary" />
-              <span className="text-sm text-muted-foreground">
-                {step === "PARSING" && "Analyzing your campaign intent..."}
-                {step === "REFINING" && "Refining segment..."}
-                {step === "DRAFTING_MESSAGE" && "Crafting your message..."}
-                {step === "CREATING_CAMPAIGN" && "Creating campaign..."}
-                {step === "DISPATCHING" && "Dispatching messages..."}
-              </span>
-            </div>
-          </div>
-        )}
-
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input */}
-      {step !== "CAMPAIGN_CREATED" && step !== "DISPATCHING" && (
-        <div className="flex-shrink-0 pt-4 border-t border-border/50">
-          <div className="flex gap-3">
-            <Textarea
-              ref={inputRef}
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-              placeholder={
-                step === "SEGMENT_PREVIEW"
-                  ? "Type to refine the segment (e.g., 'make it 90 days instead')..."
-                  : "Describe your campaign..."
-              }
-              className="min-h-[52px] max-h-[120px] resize-none text-sm"
-              disabled={isProcessing || step === "MESSAGE_DRAFT"}
-            />
-            <Button
-              onClick={handleSendMessage}
-              disabled={
-                !inputValue.trim() || isProcessing || step === "MESSAGE_DRAFT"
-              }
-              className="self-end px-4"
-            >
-              <Send className="w-4 h-4" />
+        <TabsContent value="active" className="flex-1 flex flex-col m-0 p-0 overflow-hidden outline-none data-[state=active]:flex">
+          {/* Active Chat Controls */}
+          <div className="flex justify-end pt-2 px-1">
+            <Button variant="ghost" size="sm" onClick={startNewSession} className="text-xs h-7 text-muted-foreground hover:text-primary">
+              <Plus className="w-3 h-3 mr-1" /> New Session
             </Button>
           </div>
-          {step === "SEGMENT_PREVIEW" && (
-            <p className="text-[10px] text-muted-foreground mt-2 flex items-center gap-1">
-              <Lightbulb className="w-3 h-3" /> Type a follow-up to refine, or click &quot;Confirm Segment&quot; above to proceed to message drafting.
-            </p>
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto py-4 space-y-4 px-1">
+            {messages.map((msg) => (
+              <div key={msg.id}>{renderMessage(msg)}</div>
+            ))}
+
+            {isProcessing && (
+              <div className="flex justify-start animate-slide-up">
+                <div className="glass rounded-2xl rounded-bl-sm px-4 py-3 flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                  <span className="text-sm text-muted-foreground">
+                    {step === "PARSING" && "Analyzing your campaign intent..."}
+                    {step === "REFINING" && "Refining segment..."}
+                    {step === "DRAFTING_MESSAGE" && "Crafting your message..."}
+                    {step === "CREATING_CAMPAIGN" && "Creating campaign..."}
+                    {step === "DISPATCHING" && "Dispatching messages..."}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input */}
+          {step !== "CAMPAIGN_CREATED" && step !== "DISPATCHING" && (
+            <div className="flex-shrink-0 pt-4 border-t border-border/50">
+              <div className="flex gap-3">
+                <Textarea
+                  ref={inputRef}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  placeholder={
+                    step === "SEGMENT_PREVIEW"
+                      ? "Type to refine the segment (e.g., 'make it 90 days instead')..."
+                      : "Describe your campaign..."
+                  }
+                  className="min-h-[52px] max-h-[120px] resize-none text-sm"
+                  disabled={isProcessing || step === "MESSAGE_DRAFT"}
+                />
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={
+                    !inputValue.trim() || isProcessing || step === "MESSAGE_DRAFT"
+                  }
+                  className="self-end px-4"
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              </div>
+              {step === "SEGMENT_PREVIEW" && (
+                <p className="text-[10px] text-muted-foreground mt-2 flex items-center gap-1">
+                  <Lightbulb className="w-3 h-3" /> Type a follow-up to refine, or click &quot;Confirm Segment&quot; above to proceed to message drafting.
+                </p>
+              )}
+              {step === "MESSAGE_DRAFT" && (
+                <p className="text-[10px] text-muted-foreground mt-2 flex items-center gap-1">
+                  <PenLine className="w-3 h-3" /> Edit the message template above if needed, then click &quot;Approve & Create Campaign&quot;.
+                </p>
+              )}
+            </div>
           )}
-          {step === "MESSAGE_DRAFT" && (
-            <p className="text-[10px] text-muted-foreground mt-2 flex items-center gap-1">
-              <PenLine className="w-3 h-3" /> Edit the message template above if needed, then click &quot;Approve & Create Campaign&quot;.
-            </p>
-          )}
-        </div>
-      )}
+        </TabsContent>
+
+        <TabsContent value="history" className="flex-1 overflow-y-auto m-0 outline-none data-[state=active]:block">
+          <div className="py-6 max-w-3xl mx-auto space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold">Session History</h2>
+                <p className="text-sm text-muted-foreground">Resume previous campaign drafts and chat sessions.</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={clearHistory} className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20">
+                <Trash2 className="w-4 h-4 mr-1.5" /> Clear All
+              </Button>
+            </div>
+
+            {history.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center border border-dashed rounded-xl bg-muted/10">
+                <Clock className="w-10 h-10 text-muted-foreground/30 mb-3" />
+                <h3 className="text-sm font-medium">No history yet</h3>
+                <p className="text-xs text-muted-foreground mt-1 max-w-[250px]">Your active chat sessions will be automatically saved here.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {history.map((session) => {
+                  const firstUserMsg = session.messages.find(m => m.role === "user");
+                  const previewMsg = session.messages.find(m => m.type === "segment-preview");
+                  
+                  let title = firstUserMsg ? firstUserMsg.content : "New Conversation";
+                  if (title.length > 80) title = title.substring(0, 80) + "...";
+
+                  return (
+                    <Card key={session.id} className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => restoreSession(session)}>
+                      <CardContent className="p-4 flex items-center justify-between">
+                        <div className="space-y-1 overflow-hidden">
+                          <h4 className="text-sm font-medium truncate">{title}</h4>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            <span>{formatDistanceToNow(session.updatedAt, { addSuffix: true })}</span>
+                            <span className="w-1 h-1 rounded-full bg-border"></span>
+                            <span>{session.messages.length} messages</span>
+                            {previewMsg && (
+                              <>
+                                <span className="w-1 h-1 rounded-full bg-border"></span>
+                                <span className="text-primary/80">Segment matched</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <Button variant="ghost" size="sm" className="flex-shrink-0">
+                          Resume
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

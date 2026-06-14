@@ -15,12 +15,12 @@ export async function POST(request: NextRequest) {
     }
 
     const existingSegments = await prisma.segment.findMany({
-      select: { name: true, ruleDefinition: true }
+      select: { name: true, description: true }
     });
 
     let contextStr = "";
     if (existingSegments.length > 0) {
-      contextStr = `Here are the existing segments in the database:\n${JSON.stringify(existingSegments, null, 2)}`;
+      contextStr = `Here are the existing segments in the database:\n${existingSegments.map(s => `- ${s.name}: ${s.description || "No description"}`).join('\n')}`;
     }
 
     const result = await parseIntent(message, contextStr);

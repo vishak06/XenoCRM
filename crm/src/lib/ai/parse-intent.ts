@@ -48,7 +48,7 @@ export async function parseIntent(userMessage: string, contextStr: string = ""):
 
   let fullMessage = userMessage;
   if (contextStr) {
-    fullMessage = `User request: ${userMessage}\n\nContext:\n${contextStr}\n\nIf the user refers to an existing segment by name, output its exact ruleDefinition for your response.`;
+    fullMessage = `User request: ${userMessage}\n\nContext:\n${contextStr}\n\nIf the user refers to an existing segment by name, try to infer the conditions that would match that segment's purpose.`;
   }
 
   const result = await model.generateContent(fullMessage);
