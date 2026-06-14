@@ -29,19 +29,17 @@ export async function GET(request: NextRequest) {
       orderBy["createdAt"] = "desc";
     }
 
-    const [customers, total, allSegments] = await Promise.all([
-      prisma.customer.findMany({
-        where,
-        orderBy,
-        skip,
-        take: limit,
-        include: {
-          _count: { select: { orders: true } },
-        },
-      }),
-      prisma.customer.count({ where }),
-      prisma.segment.findMany(),
-    ]);
+    const customers = await prisma.customer.findMany({
+      where,
+      orderBy,
+      skip,
+      take: limit,
+      include: {
+        _count: { select: { orders: true } },
+      },
+    });
+    const total = await prisma.customer.count({ where });
+    const allSegments = await prisma.segment.findMany();
 
     const customerIds = customers.map(c => c.id);
     const customerSegments: Record<string, string[]> = {};
@@ -49,7 +47,7 @@ export async function GET(request: NextRequest) {
       customerSegments[id] = [];
     }
 
-    await Promise.all(allSegments.map(async (segment) => {
+    for (const segment of allSegments) {
       const rule = segment.ruleDefinition as any;
       const { where: segmentWhere, orderCountConditions } = ruleToPrismaWhere(rule);
       
@@ -58,16 +56,17 @@ export async function GET(request: NextRequest) {
           ...segmentWhere,
           id: { in: customerIds }
         },
-        include: {
-          _count: { select: { orders: true } }
-        }
+        include: { _count: { select: { orders: true } } }
       });
-
+      
       const filtered = filterByOrderCount(matchingCustomers, orderCountConditions, rule.combinator);
+      
       for (const c of filtered) {
-        customerSegments[c.id].push(segment.name);
+        if (customerSegments[c.id]) {
+          customerSegments[c.id].push(segment.name);
+        }
       }
-    }));
+    }
 
     const customersWithSegments = customers.map(c => ({
       ...c,

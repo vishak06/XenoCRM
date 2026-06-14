@@ -5,12 +5,10 @@ import { ruleToPrismaWhere, filterByOrderCount } from "@/lib/segments/rule-to-pr
 
 export async function POST() {
   try {
-    const [totalCustomers, orders, logs, segments] = await Promise.all([
-      prisma.customer.count(),
-      prisma.order.findMany(),
-      prisma.communicationLog.findMany(),
-      prisma.segment.findMany(),
-    ]);
+    const totalCustomers = await prisma.customer.count();
+    const orders = await prisma.order.findMany();
+    const logs = await prisma.communicationLog.findMany();
+    const segments = await prisma.segment.findMany();
 
     // Metrics
     let totalRevenue = 0;
@@ -60,18 +58,17 @@ export async function POST() {
       .slice(0, 5);
 
     // Segments data
-    const segmentsData = await Promise.all(
-      segments.map(async (segment) => {
-        const rule = segment.ruleDefinition as any;
-        const { where, orderCountConditions } = ruleToPrismaWhere(rule);
-        const matchingCustomers = await prisma.customer.findMany({
-          where,
-          include: { _count: { select: { orders: true } } },
-        });
-        const filtered = filterByOrderCount(matchingCustomers, orderCountConditions, rule.combinator);
-        return { name: segment.name, value: filtered.length };
-      })
-    );
+    const segmentsData = [];
+    for (const segment of segments) {
+      const rule = segment.ruleDefinition as any;
+      const { where, orderCountConditions } = ruleToPrismaWhere(rule);
+      const matchingCustomers = await prisma.customer.findMany({
+        where,
+        include: { _count: { select: { orders: true } } },
+      });
+      const filtered = filterByOrderCount(matchingCustomers, orderCountConditions, rule.combinator);
+      segmentsData.push({ name: segment.name, value: filtered.length });
+    }
 
     const revenueGraph = Object.entries(revenueByMonth).map(([name, revenue]) => ({
       name,

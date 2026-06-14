@@ -4,17 +4,10 @@ import { ruleToPrismaWhere, filterByOrderCount } from "@/lib/segments/rule-to-pr
 
 export async function GET() {
   try {
-    const [
-      totalCustomers,
-      orders,
-      logs,
-      segments
-    ] = await Promise.all([
-      prisma.customer.count(),
-      prisma.order.findMany(),
-      prisma.communicationLog.findMany(),
-      prisma.segment.findMany()
-    ]);
+    const totalCustomers = await prisma.customer.count();
+    const orders = await prisma.order.findMany();
+    const logs = await prisma.communicationLog.findMany();
+    const segments = await prisma.segment.findMany();
 
     // 1. Key Metrics
     let totalRevenue = 0;
@@ -86,7 +79,8 @@ export async function GET() {
       .slice(0, 5);
 
     // 5. Segments Data
-    const segmentsData = await Promise.all(segments.map(async (segment) => {
+    const segmentsData = [];
+    for (const segment of segments) {
       const rule = segment.ruleDefinition as any;
       const { where, orderCountConditions } = ruleToPrismaWhere(rule);
       
@@ -97,18 +91,16 @@ export async function GET() {
         }
       });
       const filtered = filterByOrderCount(matchingCustomers, orderCountConditions, rule.combinator);
-      return {
+      segmentsData.push({
         name: segment.name,
         value: filtered.length
-      };
-    }));
+      });
+    }
 
     // 6. Recent Activities
-    const [recentOrders, recentCustomers, recentCampaigns] = await Promise.all([
-      prisma.order.findMany({ orderBy: { orderDate: 'desc' }, take: 5, include: { customer: { select: { name: true } } } }),
-      prisma.customer.findMany({ orderBy: { createdAt: 'desc' }, take: 5 }),
-      prisma.campaign.findMany({ orderBy: { createdAt: 'desc' }, take: 5 })
-    ]);
+    const recentOrders = await prisma.order.findMany({ orderBy: { orderDate: 'desc' }, take: 5, include: { customer: { select: { name: true } } } });
+    const recentCustomers = await prisma.customer.findMany({ orderBy: { createdAt: 'desc' }, take: 5 });
+    const recentCampaigns = await prisma.campaign.findMany({ orderBy: { createdAt: 'desc' }, take: 5 });
 
     const activities: any[] = [];
     for (const o of recentOrders) {

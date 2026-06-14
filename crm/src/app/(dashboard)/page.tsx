@@ -8,21 +8,18 @@ import {
 import { Users, ShoppingBag, Megaphone, IndianRupee, TrendingUp, Target, ArrowUpRight, Sparkles, PieChart, Layers, Send } from "lucide-react";
 
 async function getStats() {
-  const [customerCount, orderCount, campaignCount, totalRevenue, recentCustomers, activeCampaigns] =
-    await Promise.all([
-      prisma.customer.count(),
-      prisma.order.count(),
-      prisma.campaign.count(),
-      prisma.order.aggregate({ _sum: { amount: true } }),
-      prisma.customer.count({
-        where: {
-          createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
-        },
-      }),
-      prisma.campaign.count({
-        where: { status: { in: ["QUEUED", "SENDING"] } },
-      }),
-    ]);
+  const customerCount = await prisma.customer.count();
+  const orderCount = await prisma.order.count();
+  const campaignCount = await prisma.campaign.count();
+  const totalRevenue = await prisma.order.aggregate({ _sum: { amount: true } });
+  const recentCustomers = await prisma.customer.count({
+    where: {
+      createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+    },
+  });
+  const activeCampaigns = await prisma.campaign.count({
+    where: { status: { in: ["QUEUED", "SENDING"] } },
+  });
 
   return {
     customerCount,
